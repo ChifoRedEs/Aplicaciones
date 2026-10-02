@@ -1,1 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Juegos Reunidos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700&display=swap">
+<style>
+:root{--bg:#EEF2EF;--ink:#1B2A3A;--mut:#5C6B78;--card:#fff;--line:#C9D3CE;--red:#D6453D;--blue:#2B6CB0;--yel:#F2B84B;--sel:#DCEBFA;--bad:#FBE0DE;--dark:#6B4A36;--light:#E9D5B7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14202B;--ink:#E9EEF2;--mut:#9AA9B5;--card:#1E2E3C;--line:#34485A;--sel:#27425C;--bad:#5A2B2B}}
+:root[data-theme="dark"]{--bg:#14202B;--ink:#E9EEF2;--mut:#9AA9B5;--card:#1E2E3C;--line:#34485A;--sel:#27425C;--bad:#5A2B2B}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;font-weight:500}
+h1,h2{font-family:'Baloo 2',system-ui,sans-serif;margin:0;line-height:1.1}
+main{max-width:480px;margin:0 auto;padding:16px 14px 96px}
+button{font:inherit;color:inherit;cursor:pointer}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1;background:none;border:0;padding:6px 0;font-size:11px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:700}
+nav button span{font-size:22px}
+nav button.on{color:var(--blue)}
+.card{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-left:8px solid var(--c);border-radius:14px;padding:14px 16px;margin:10px 0}
+.card h2{font-size:22px}.card p{margin:4px 0 0;color:var(--mut);font-size:14px}
+.soon{border:2px dashed var(--line);border-radius:14px;padding:12px 16px;color:var(--mut);font-size:14px;margin-top:18px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-weight:700;font-size:14px}
+.btn.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.msg{min-height:24px;font-weight:700;margin:8px 0}
+.win{color:#1E8E4E}
+/* sudoku */
+.sd{display:grid;grid-template-columns:repeat(9,1fr);width:min(100%,440px);aspect-ratio:1;border:2px solid var(--ink);margin:10px auto;background:var(--card)}
+.sd button{border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:none;font-size:clamp(16px,5.4vw,24px);padding:0;font-family:'Baloo 2',sans-serif}
+.sd button:nth-child(3n){border-right:2px solid var(--ink)}
+.sd button:nth-child(n+19):nth-child(-n+27),.sd button:nth-child(n+46):nth-child(-n+54){border-bottom:2px solid var(--ink)}
+.sd .g{font-weight:800}.sd .u{color:var(--blue)}
+.sd .p{background:var(--sel)}.sd .s{background:var(--yel);color:#1B2A3A}.sd .x{background:var(--bad);color:var(--red)}
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:min(100%,440px);margin:0 auto}
+.pad button{padding:12px 0;font-size:18px;font-weight:800;background:var(--card);border:1px solid var(--line);border-radius:10px}
+/* nonogram */
+.ng{display:grid;grid-template-columns:auto repeat(var(--n),var(--cs));margin:10px auto;width:max-content;max-width:100%;font-size:12px;font-weight:700}
+.ng .cc{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:3px;line-height:1.15}
+.ng .rc{display:flex;gap:4px;justify-content:flex-end;align-items:center;padding-right:6px}
+.ng .c{width:var(--cs);height:var(--cs);border:1px solid var(--line);background:var(--card);padding:0;font-size:14px;color:var(--mut)}
+.ng .c.f{background:var(--ink)}
+.ng .c.m5{border-right:2px solid var(--ink)}.ng .c.b5{border-bottom:2px solid var(--ink)}
+.ng .ok{color:#1E8E4E}
+/* checkers */
+.ck{display:grid;grid-template-columns:repeat(8,1fr);width:min(100%,440px);aspect-ratio:1;margin:10px auto;border:3px solid var(--dark);border-radius:6px;overflow:hidden}
+.ck div{display:flex;align-items:center;justify-content:center;background:var(--light);position:relative}
+.ck div.d{background:var(--dark)}
+.ck div.s::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 4px var(--yel)}
+.ck div.t::before{content:"";position:absolute;width:30%;height:30%;border-radius:50%;background:var(--yel);opacity:.9}
+.pc{width:76%;height:76%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:clamp(14px,5vw,22px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.pc.w{background:#F7F3EA;color:#8A6D1E;border:3px solid #D8CFB8}
+.pc.b{background:#B3322B;color:#FFE9A8;border:3px solid #7E211C}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav id="nav"></nav>
+<script>
+const $=s=>document.querySelector(s);
+const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const TABS=[['home','🏠','Inicio'],['sudoku','🔢','Sudoku'],['nono','🖼️','Nonogram'],['damas','⚫','Damas']];
+let view='home';
+function go(v){view=v;render()}
+function render(){
+  $('#nav').innerHTML=TABS.map(t=>`<button class="${t[0]==view?'on':''}" data-go="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join('');
+  ({home:rHome,sudoku:rSudoku,nono:rNono,damas:rDamas})[view]();
+  window.scrollTo(0,0);
+}
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');if(g)return go(g.dataset.go);
+  const a=e.target.closest('[data-a]');if(a)ACT[a.dataset.a](a.dataset.v,a);
+});
 
+/* ---------- INICIO ---------- */
+function rHome(){
+  $('#app').innerHTML=`<h1 style="font-size:34px">Juegos Reunidos</h1>
+  <p style="color:var(--mut);margin:4px 0 8px">Elige un juego para empezar.</p>
+  <button class="card" style="--c:var(--blue)" data-go="sudoku"><h2>Sudoku</h2><p>Completa la cuadrícula sin repetir números. 3 niveles.</p></button>
+  <button class="card" style="--c:var(--yel)" data-go="nono"><h2>Nonogram</h2><p>Descubre el dibujo con las pistas de filas y columnas.</p></button>
+  <button class="card" style="--c:var(--red)" data-go="damas"><h2>Damas</h2><p>Juega con blancas contra la máquina. Captura obligatoria.</p></button>
+  <div class="soon">Próximamente: Solitario Klondike y Parchís.</div>`;
+}
+
+/* ---------- SUDOKU ---------- */
+let S=null;
+function genSudoku(){
+  const g=Array(81).fill(0);
+  const ok=(i,v)=>{const r=i/9|0,c=i%9;for(let k=0;k<9;k++)if(g[r*9+k]==v||g[k*9+c]==v)return false;
+    const br=r-r%3,bc=c-c%3;for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(g[(br+a)*9+bc+b]==v)return false;return true};
+  const fill=i=>{if(i==81)return true;for(const v of shuffle([1,2,3,4,5,6,7,8,9]))if(ok(i,v)){g[i]=v;if(fill(i+1))return true;g[i]=0}return false};
+  fill(0);return g;
+}
+function newSudoku(level='medio'){
+  const sol=genSudoku(),cur=sol.slice(),n={facil:36,medio:46,dificil:54}[level];
+  shuffle([...Array(81).keys()]).slice(0,n).forEach(i=>cur[i]=0);
+  S={sol,cur,given:cur.map(v=>v>0),sel:-1,level,done:false};
+}
+const peers=(i,j)=>{const r=i/9|0,c=i%9,r2=j/9|0,c2=j%9;return i!=j&&(r==r2||c==c2||((r/3|0)==(r2/3|0)&&(c/3|0)==(c2/3|0)))};
+const sConf=i=>S.cur[i]&&S.cur.some((v,j)=>v==S.cur[i]&&peers(i,j));
+function rSudoku(){
+  if(!S)newSudoku();
+  const sv=S.sel>=0?S.cur[S.sel]:0;
+  const cells=S.cur.map((v,i)=>{
+    let c=S.given[i]?'g':'u';
+    if(S.sel>=0&&(peers(S.sel,i)))c+=' p';
+    if(sv&&v==sv)c+=' p';
+    if(sConf(i))c+=' x';
+    if(i==S.sel)c+=' s';
+    return `<button class="${c}" data-a="sCell" data-v="${i}">${v||''}</button>`}).join('');
+  const full=S.cur.every(v=>v)&&!S.cur.some((v,i)=>sConf(i));
+  if(full)S.done=true;
+  $('#app').innerHTML=`<h2>Sudoku</h2>
+  <div class="bar">${['facil','medio','dificil'].map(l=>`<button class="btn ${S.level==l?'on':''}" data-a="sNew" data-v="${l}">${{facil:'Fácil',medio:'Medio',dificil:'Difícil'}[l]}</button>`).join('')}</div>
+  <div class="sd">${cells}</div>
+  <div class="msg ${S.done?'win':''}">${S.done?'¡Sudoku completado!':'Toca una casilla y elige un número.'}</div>
+  <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-a="sNum" data-v="${n}">${n}</button>`).join('')}<button data-a="sNum" data-v="0">⌫</button></div>
+  <div class="bar"><button class="btn" data-a="sHint">Pista</button><button class="btn" data-a="sNew" data-v="${S.level}">Nuevo juego</button></div>`;
+}
+function setCell(v){if(S.sel<0||S.given[S.sel]||S.done)return;S.cur[S.sel]=+v;rSudoku()}
+document.addEventListener('keydown',e=>{
+  if(view!='sudoku'||!S)return;
+  if(/^[0-9]$/.test(e.key))setCell(e.key);
+  else if(e.key=='Backspace'||e.key=='Delete')setCell(0);
+  else if(S.sel>=0&&e.key.startsWith('Arrow')){const d={ArrowUp:-9,ArrowDown:9,ArrowLeft:-1,ArrowRight:1}[e.key];const n=S.sel+d;if(n>=0&&n<81){S.sel=n;rSudoku()}}
+});
+
+/* ---------- NONOGRAM ---------- */
+let N=null;
+const runs=l=>{const r=[];let k=0;l.forEach(v=>{if(v==1)k++;else if(k){r.push(k);k=0}});if(k)r.push(k);return r.length?r:[0]};
+function newNono(n=10){
+  const sol=Array.from({length:n},()=>Array.from({length:n},()=>Math.random()<.55?1:0));
+  const col=j=>sol.map(r=>r[j]);
+  N={n,sol,cur:Array.from({length:n},()=>Array(n).fill(0)),mode:'f',done:false,
+     rc:sol.map(runs),cc:[...Array(n).keys()].map(j=>runs(col(j)))};
+}
+const same=(a,b)=>a.join()==b.join();
+function nCheck(){
+  const n=N.n,cu=N.cur.map(r=>r.map(v=>v==1?1:0));
+  const rok=cu.map((r,i)=>same(runs(r),N.rc[i])),cok=[...Array(n).keys()].map(j=>same(runs(cu.map(r=>r[j])),N.cc[j]));
+  return{rok,cok,all:rok.every(Boolean)&&cok.every(Boolean)};
+}
+function rNono(){
+  if(!N)newNono(10);
+  const n=N.n,ck=nCheck();N.done=ck.all;
+  let h=`<div></div>`+N.cc.map((c,j)=>`<div class="cc ${ck.cok[j]?'ok':''}">${c.map(x=>`<span>${x}</span>`).join('')}</div>`).join('');
+  for(let i=0;i<n;i++){
+    h+=`<div class="rc ${ck.rok[i]?'ok':''}">${N.rc[i].map(x=>`<span>${x}</span>`).join('')}</div>`;
+    for(let j=0;j<n;j++){const v=N.cur[i][j];
+      h+=`<button class="c ${v==1?'f':''} ${n==10&&j==4?'m5':''} ${n==10&&i==4?'b5':''}" data-a="nCell" data-v="${i},${j}">${v==2?'✕':''}</button>`}
+  }
+  $('#app').innerHTML=`<h2>Nonogram</h2>
+  <div class="bar"><button class="btn ${n==5?'on':''}" data-a="nNew" data-v="5">5×5</button><button class="btn ${n==10?'on':''}" data-a="nNew" data-v="10">10×10</button>
+  <button class="btn" data-a="nNew" data-v="${n}">Nuevo</button></div>
+  <div class="bar"><button class="btn ${N.mode=='f'?'on':''}" data-a="nMode" data-v="f">■ Rellenar</button><button class="btn ${N.mode=='x'?'on':''}" data-a="nMode" data-v="x">✕ Marcar vacía</button></div>
+  <div class="ng" style="--n:${n};--cs:min(calc((100vw - 110px)/${n}),${n==5?52:36}px)">${h}</div>
+  <div class="msg ${N.done?'win':''}">${N.done?'¡Dibujo completado!':'Las pistas en verde ya están cumplidas.'}</div>`;
+}
+
+/* ---------- DAMAS ---------- */
+let C=null;
+const own=p=>p.toLowerCase(),isK=p=>p=='W'||p=='B';
+const dirs=p=>isK(p)?[[1,1],[1,-1],[-1,1],[-1,-1]]:(p=='w'?[[-1,1],[-1,-1]]:[[1,1],[1,-1]]);
+const inb=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
+function chains(b,r,c,p,caps,path,out){
+  let f=false;
+  for(const[dr,dc]of dirs(p)){
+    const mr=r+dr,mc=c+dc,lr=r+2*dr,lc=c+2*dc;if(!inb(lr,lc))continue;
+    const m=b[mr][mc];
+    if(m&&own(m)!=own(p)&&b[lr][lc]==0&&!caps.some(x=>x[0]==mr&&x[1]==mc)){f=true;chains(b,lr,lc,p,[...caps,[mr,mc]],[...path,[lr,lc]],out)}
+  }
+  if(!f&&path.length>1)out.push({path,caps});
+}
+function allMoves(b,color){
+  const jumps=[],steps=[];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=b[r][c];if(!p||own(p)!=color)continue;
+    const t=b.map(x=>x.slice());t[r][c]=0;chains(t,r,c,p,[],[[r,c]],jumps);
+    for(const[dr,dc]of dirs(p)){const nr=r+dr,nc=c+dc;if(inb(nr,nc)&&b[nr][nc]==0)steps.push({path:[[r,c],[nr,nc]],caps:[]})}
+  }
+  return jumps.length?jumps:steps;
+}
+function applyMove(b,m){
+  const t=b.map(x=>x.slice()),[fr,fc]=m.path[0],[er,ec]=m.path[m.path.length-1];
+  let p=t[fr][fc];t[fr][fc]=0;m.caps.forEach(([r,c])=>t[r][c]=0);
+  if(p=='w'&&er==0)p='W';if(p=='b'&&er==7)p='B';t[er][ec]=p;return t;
+}
+function newDamas(){
+  const b=Array.from({length:8},()=>Array(8).fill(0));
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if((r+c)%2){if(r<3)b[r][c]='b';else if(r>4)b[r][c]='w'}
+  C={b,sel:null,turn:'w',over:false,msg:'Tu turno (blancas).'};C.moves=allMoves(b,'w');
+}
+function aiMove(){
+  const ms=allMoves(C.b,'b');
+  let best=null,bs=-1e9;
+  for(const m of ms){
+    const nb=applyMove(C.b,m),opp=allMoves(nb,'w');
+    const risk=opp.length&&opp[0].caps.length?Math.max(...opp.map(o=>o.caps.length)):0;
+    const [er]=m.path[m.path.length-1],s=m.caps.length*10+(nb[er][m.path[m.path.length-1][1]]=='B'&&C.b[m.path[0][0]][m.path[0][1]]=='b'?4:0)-risk*8+er*.3+Math.random();
+    if(s>bs){bs=s;best=m}
+  }
+  C.b=applyMove(C.b,best);C.moves=allMoves(C.b,'w');C.turn='w';
+  if(!C.moves.length){C.over=true;C.msg='Has perdido. ¡Otra partida!'}
+  else C.msg=C.moves[0].caps.length?'Tu turno: captura obligatoria.':'Tu turno (blancas).';
+  if(view=='damas')rDamas();
+}
+function rDamas(){
+  if(!C)newDamas();
+  const dest=C.sel?C.moves.filter(m=>m.path[0][0]==C.sel[0]&&m.path[0][1]==C.sel[1]).map(m=>m.path[m.path.length-1].join()):[];
+  let h='';
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=C.b[r][c],dk=(r+c)%2==1;
+    const cl=(dk?'d ':'')+(C.sel&&C.sel[0]==r&&C.sel[1]==c?'s ':'')+(dest.includes(r+','+c)?'t':'');
+    h+=`<div class="${cl}" data-a="dCell" data-v="${r},${c}">${p?`<div class="pc ${own(p)}" style="background:inherit"></div>`:''}</div>`;
+  }
+  $('#app').innerHTML=`<h2>Damas</h2>
+  <div class="msg ${C.over&&C.msg.startsWith('¡')?'win':''}">${C.msg}</div>
+  <div class="ck">${h}</div>
+  <div class="bar"><button class="btn" data-a="dNew">Nueva partida</button></div>
+  <p style="color:var(--mut);font-size:13px">Reglas: las fichas se mueven en diagonal; los reyes (♛) en las cuatro direcciones. Si puedes capturar, debes hacerlo.</p>`;
+  // dibujar fichas con estilo propio
+  document.querySelectorAll('.ck .pc').forEach(el=>{
+    const [r,c]=el.parentElement.dataset.v.split(',').map(Number),p=C.b[r][c];
+    el.style.background='';if(isK(p))el.textContent='♛';
+  });
+}
+
+/* ---------- ACCIONES ---------- */
+const ACT={
+  sCell:v=>{S.sel=+v;rSudoku()},
+  sNum:v=>setCell(v),
+  sNew:v=>{newSudoku(v);rSudoku()},
+  sHint:()=>{if(S.sel>=0&&!S.given[S.sel]&&!S.done){S.cur[S.sel]=S.sol[S.sel];rSudoku()}},
+  nNew:v=>{newNono(+v);rNono()},
+  nMode:v=>{N.mode=v;rNono()},
+  nCell:v=>{if(N.done)return;const[i,j]=v.split(',').map(Number),t=N.mode=='f'?1:2;N.cur[i][j]=N.cur[i][j]==t?0:t;rNono()},
+  dNew:()=>{newDamas();rDamas()},
+  dCell:v=>{
+    if(C.over||C.turn!='w')return;
+    const[r,c]=v.split(',').map(Number),p=C.b[r][c];
+    if(C.sel){
+      const m=C.moves.find(m=>m.path[0][0]==C.sel[0]&&m.path[0][1]==C.sel[1]&&m.path[m.path.length-1][0]==r&&m.path[m.path.length-1][1]==c);
+      if(m){
+        C.b=applyMove(C.b,m);C.sel=null;C.turn='b';
+        if(!allMoves(C.b,'b').length){C.over=true;C.msg='¡Has ganado!';rDamas();return}
+        C.msg='Piensa la máquina…';rDamas();setTimeout(aiMove,550);return;
+      }
+    }
+    C.sel=(p&&own(p)=='w'&&C.moves.some(m=>m.path[0][0]==r&&m.path[0][1]==c))?[r,c]:null;
+    rDamas();
+  }
+};
+render();
+</script>
+</body>
+</html>
