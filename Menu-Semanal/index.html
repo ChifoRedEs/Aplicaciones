@@ -36,7 +36,8 @@ h4{margin:12px 0 2px;color:var(--ac);font-size:14px}.sm{font-size:12px;color:var
 <div class="row"><div><label>Peso por unidad (g, opcional)</label><input id="fu" type="number" inputmode="decimal"></div><div><label>Nombre unidad</label><input id="fx" placeholder="ud"></div></div><button class="btn" id="fs" style="margin-top:8px">Guardar alimento</button></div></section>
 <section id="d" class="tab"><div class="card"><h3>🎯 Objetivos diarios</h3><div class="row"><div><label>kcal</label><input id="tk" type="number"></div><div><label>Prot g</label><input id="tp" type="number"></div><div><label>Grasa g</label><input id="tg" type="number"></div><div><label>Hidr g</label><input id="th" type="number"></div></div><label>Margen de tolerancia (%)</label><input id="tm" type="number"><p class="mm">Verde: dentro del margen · Ámbar: hasta el doble · Rojo: fuera. La grasa solo se marca al pasarse del objetivo.</p></div>
 <div class="card"><h3>Base fija diaria</h3><p class="mm">Desayuno: avena 200 g, matcha 4 g, pan 60 g, aguacate 50 g, jamón cocido 40 g.<br>Almuerzo: fruta 150 g, pan 60 g, jamón cocido 40 g.<br>Merienda: fruta 150 g + nueces 15 g + tortitas 15 g, o pre-entreno: yogur 120 g + arándanos 100 g + nueces 15 g.</p></div>
-<button class="btn s" id="ro" style="display:block;margin-bottom:10px">Restaurar platos originales del PDF</button><button class="btn r" id="rs">Borrar mis datos guardados</button></section>
+<button class="btn s" id="ro" style="display:block;margin-bottom:10px">Restaurar platos originales del PDF</button><div class="card"><h3>💾 Copia de seguridad</h3><p class="mm">Tus datos (platos, alimentos, menú y ajustes) se guardan solo en este navegador. Descarga una copia con regularidad, y siempre antes de cambiar de móvil, de navegador o de URL.</p><div class="row"><button class="btn" id="bd">⬇️ Descargar copia</button><button class="btn s" id="bi">⬆️ Importar copia</button></div><input type="file" id="bf" accept=".json,application/json" style="display:none"><p class="mm" id="bm" style="margin:8px 0 0"></p></div>
+<div class="card" style="border-color:var(--bd)"><h3 style="color:var(--bd)">Zona de peligro</h3><button class="btn r" id="rs" style="width:100%">Borrar todos los datos</button></div></section>
 </main>
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],r=Math.round,esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -166,7 +167,24 @@ $('#ds').onclick=()=>{const n=$('#dn').value.trim(),i=rows();if(!n||!i.length)re
 $('#fs').onclick=()=>{const n=$('#fn').value.trim();if(!n)return alert('Falta el nombre.');const v=x=>+$('#'+x).value||0;
  S.foods[n]={cat:$('#fc').value.trim()||'Otros',k:v('fk'),p:v('fp'),g:v('fg'),h:v('fh'),u:v('fu'),un:$('#fx').value.trim()};save();['fn','fc','fk','fp','fg','fh','fu','fx'].forEach(x=>$('#'+x).value='');$$('#dr select').forEach(s=>{const v=s.value;s.innerHTML=Object.keys(foods()).sort().map(n=>`<option>${esc(n)}</option>`).join('');s.value=v});renderAll()};
 [['tk','k'],['tp','p'],['tg','g'],['th','h'],['tm','m']].forEach(([id,k])=>{$('#'+id).value=S.t[k];$('#'+id).oninput=e=>{S.t[k]=+e.target.value||0;save();renderWeek()}});
-$('#rs').onclick=()=>{if(confirm('¿Borrar platos, alimentos y menú guardados?')){try{localStorage.removeItem('mp1')}catch(e){}location.reload()}};
+const APP='menu-semanal',VER=1;
+function norm(o){o=o&&typeof o==='object'?o:{};o.foods=o.foods&&typeof o.foods==='object'?o.foods:{};o.dishes=Array.isArray(o.dishes)?o.dishes:[];o.del=Array.isArray(o.del)?o.del:[];o.chk=o.chk&&typeof o.chk==='object'?o.chk:{};o.t=Object.assign({k:2100,p:230,g:70,h:140,m:5},o.t||{});if(!Array.isArray(o.plan)||o.plan.length!==7)o.plan=Array.from({length:7},()=>({c:'',n:'',e:false}));return o}
+const bmsg=(t,ok)=>{const e=$('#bm');e.textContent=t;e.style.color=ok?'var(--ok)':'var(--bd)'};
+const syncT=()=>[['tk','k'],['tp','p'],['tg','g'],['th','h'],['tm','m']].forEach(([i,k])=>$('#'+i).value=S.t[k]);
+$('#bd').onclick=()=>{try{const d=new Date(),p=n=>String(n).padStart(2,'0'),f=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+ const o={app:APP,version:VER,fecha:d.toISOString(),datos:{mp1:S}},a=document.createElement('a'),nm=APP+'-copia-'+f+'.json';
+ a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}));a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);bmsg('Copia descargada: '+nm,1)}catch(e){bmsg('No se pudo descargar la copia.',0)}};
+$('#bi').onclick=()=>$('#bf').click();
+$('#bf').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const R=new FileReader();
+ R.onerror=()=>bmsg('No se pudo leer el archivo.',0);
+ R.onload=()=>{let o;try{o=JSON.parse(R.result)}catch(x){return bmsg('Error: el archivo no es un JSON válido.',0)}
+  if(!o||o.app!==APP||!o.datos||typeof o.datos.mp1!=='object'||!o.datos.mp1)return bmsg('Error: este archivo no es una copia de esta app (Menú semanal).',0);
+  if(!confirm('Se reemplazarán los datos actuales. ¿Continuar?'))return;
+  S=norm(o.datos.mp1);let ok=true;try{localStorage.setItem('mp1',JSON.stringify(S))}catch(x){ok=false}
+  endEdit();syncT();renderAll();bmsg(ok?'Copia restaurada correctamente.':'Copia cargada, pero no se pudo guardar en este navegador.',ok)};
+ R.readAsText(f)};
+$('#rs').onclick=()=>{if(!confirm('¿Borrar TODOS los datos de la app (platos, alimentos, menú y ajustes)? No se puede deshacer.'))return;if(!confirm('Última confirmación: se borrará todo. ¿Seguro?'))return;
+ try{localStorage.removeItem('mp1')}catch(e){}S=norm({});endEdit();syncT();renderAll();bmsg('Todos los datos se han borrado.',1)};
 $$('nav button').forEach(b=>b.onclick=()=>{$$('nav button,.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');$('#'+b.dataset.t).classList.add('on');scrollTo(0,0)});
 function renderAll(){renderWeek();renderShop();renderDishes()}
 renderAll();addRow();
