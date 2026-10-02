@@ -84,6 +84,12 @@
   .export-box textarea{width:100%;min-height:150px;background:#0B0D10;border:1px solid var(--border);border-radius:8px;color:#8BE28B;font-family:'JetBrains Mono',monospace;font-size:11px;padding:10px;resize:vertical;}
   .export-hint{font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5;}
   .btn-copy{margin-top:8px;width:100%;padding:10px;border-radius:8px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--surface-3);color:var(--text);}
+  #settingsScreen{padding:16px;display:none;}
+  .danger-zone{border-color:rgba(255,97,97,.4);}
+  .danger-zone h3{color:var(--danger);}
+  .btn-delete-all{width:100%;padding:13px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid rgba(255,97,97,.4);background:none;color:var(--danger);margin-top:4px;}
+  .settings-hint{font-size:12.5px;color:var(--text-muted);line-height:1.6;margin-bottom:14px;}
+  .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--surface-3);color:var(--text);border:1px solid var(--border);padding:11px 18px;border-radius:30px;font-size:13px;font-weight:600;z-index:60;max-width:88%;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.4);}
 
   /* ---- overlay / sheet ---- */
   .overlay{position:fixed;inset:0;background:rgba(8,9,11,.6);backdrop-filter:blur(2px);display:flex;align-items:flex-end;justify-content:center;z-index:30;animation:fadeIn .15s ease;}
@@ -200,12 +206,15 @@
       <span><i style="background:var(--pierna)"></i>Pierna</span>
     </div>
     <button class="manage-link" id="manageLinkBtn">⚙ Gestionar ejercicios personalizados</button>
+    <button class="manage-link" id="settingsLinkBtn">🛠️ Ajustes</button>
   </main>
 
   <main id="workoutScreen" class="view"></main>
   <main id="selectionScreen" class="view"></main>
   <main id="manageScreen" class="view"></main>
+  <main id="settingsScreen" class="view"></main>
 </div>
+<input type="file" id="importFileInput" accept="application/json,.json" style="display:none;">
 
 <div class="overlay" id="dayPanel" style="display:none;"><div class="sheet" id="sheetContent"></div></div>
 
@@ -605,6 +614,7 @@
     }
     calendarScreen.style.display = 'none';
     document.getElementById('manageScreen').style.display = 'none';
+    document.getElementById('settingsScreen').style.display = 'none';
     workoutScreen.style.display = 'none';
     document.getElementById('selectionScreen').style.display = 'block';
     backBtn.classList.add('show');
@@ -704,6 +714,7 @@
     calendarScreen.style.display = 'none';
     document.getElementById('manageScreen').style.display = 'none';
     document.getElementById('selectionScreen').style.display = 'none';
+    document.getElementById('settingsScreen').style.display = 'none';
     workoutScreen.style.display = 'block';
     backBtn.classList.add('show');
     topTitle.textContent = currentData.name;
@@ -717,6 +728,7 @@
     workoutScreen.style.display = 'none';
     document.getElementById('manageScreen').style.display = 'none';
     document.getElementById('selectionScreen').style.display = 'none';
+    document.getElementById('settingsScreen').style.display = 'none';
     calendarScreen.style.display = 'block';
     backBtn.classList.remove('show');
     topTitle.textContent = 'Rutina de Gimnasio';
@@ -738,6 +750,18 @@
     renderManage();
   }
   document.getElementById('manageLinkBtn').addEventListener('click', goToManage);
+
+  // ---------------- settings (backup / restore / wipe) ----------------
+  function goToSettings(){
+    calendarScreen.style.display = 'none';
+    document.getElementById('settingsScreen').style.display = 'block';
+    backBtn.classList.add('show');
+    topTitle.textContent = 'Ajustes';
+    topSub.textContent = 'Copia de seguridad de tus datos';
+    document.getElementById('topbar').style.setProperty('--gc', 'transparent');
+    renderSettings();
+  }
+  document.getElementById('settingsLinkBtn').addEventListener('click', goToSettings);
 
   function renderManage(){
     const manageScreen = document.getElementById('manageScreen');
@@ -1019,6 +1043,126 @@
       }
     });
   }
+
+  // ---------------- backup / restore / wipe ----------------
+  const APP_NAME = 'Rutina-Gimnasio';
+  const APP_SLUG = 'rutina-gimnasio';
+  const APP_VERSION = '1.0';
+
+  function showToast(msg, isError){
+    const existing = document.querySelector('.toast');
+    if(existing) existing.remove();
+    const t = document.createElement('div');
+    t.className = 'toast';
+    if(isError) t.style.borderColor = 'rgba(255,97,97,.5)';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3200);
+  }
+
+  function todayFileDate(){
+    const d = new Date();
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function exportAllData(){
+    try{
+      const data = {};
+      Object.keys(localStorage).forEach(k => { data[k] = localStorage.getItem(k); });
+      const backup = { app: APP_NAME, version: APP_VERSION, exportedAt: new Date().toISOString(), data };
+      const json = JSON.stringify(backup, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${APP_SLUG}-copia-${todayFileDate()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('Copia de seguridad descargada ✓');
+    }catch(e){
+      console.warn('export failed', e);
+      showToast('No se pudo generar la copia de seguridad.', true);
+    }
+  }
+
+  function importAllData(file){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let parsed;
+      try{ parsed = JSON.parse(reader.result); }
+      catch(e){ showToast('El archivo no es un JSON válido.', true); return; }
+
+      if(!parsed || typeof parsed !== 'object' || parsed.app !== APP_NAME || !parsed.data || typeof parsed.data !== 'object'){
+        showToast('Este archivo no es una copia de seguridad válida de ' + APP_NAME + '.', true);
+        return;
+      }
+      if(!confirm('Se reemplazarán los datos actuales. ¿Continuar?')) return;
+
+      try{
+        localStorage.clear();
+        Object.keys(parsed.data).forEach(k => { localStorage.setItem(k, parsed.data[k]); });
+        showToast('Copia restaurada correctamente ✓');
+        setTimeout(() => location.reload(), 900);
+      }catch(e){
+        console.warn('import failed', e);
+        showToast('No se pudo restaurar la copia de seguridad.', true);
+      }
+    };
+    reader.onerror = () => showToast('No se pudo leer el archivo.', true);
+    reader.readAsText(file);
+  }
+
+  function wipeAllData(){
+    if(!confirm('¿Seguro que quieres borrar todos los datos de la app? Esta acción no se puede deshacer.')) return;
+    if(!confirm('Última confirmación: se borrarán todas las sesiones, el historial y los ejercicios personalizados. ¿Confirmas el borrado definitivo?')) return;
+    try{
+      localStorage.clear();
+      showToast('Todos los datos se han borrado.');
+      setTimeout(() => location.reload(), 900);
+    }catch(e){
+      console.warn('wipe failed', e);
+      showToast('No se pudieron borrar los datos.', true);
+    }
+  }
+
+  function renderSettings(){
+    const settingsScreen = document.getElementById('settingsScreen');
+    settingsScreen.innerHTML = `
+      <p class="settings-hint">Los datos de esta app (sesiones, historial y ejercicios personalizados) se guardan solo en este navegador, en este dispositivo. No se sincronizan con ningún servidor. Conviene descargar una copia de seguridad con regularidad — por ejemplo, antes de cambiar de móvil, de navegador o de ubicación del archivo.</p>
+
+      <div class="manage-section">
+        <h3>Descargar copia de seguridad</h3>
+        <p class="empty-hint" style="padding-top:0;">Genera un archivo .json con todos tus datos actuales.</p>
+        <button class="btn-add" id="exportBackupBtn">⬇ Descargar copia de seguridad</button>
+      </div>
+
+      <div class="manage-section">
+        <h3>Restaurar copia de seguridad</h3>
+        <p class="empty-hint" style="padding-top:0;">Selecciona un archivo .json exportado previamente desde esta misma app.</p>
+        <button class="btn-export" id="importBackupBtn">⬆ Restaurar desde archivo</button>
+      </div>
+
+      <div class="manage-section danger-zone">
+        <h3>Zona de peligro</h3>
+        <p class="empty-hint" style="padding-top:0;">Borra permanentemente todas las sesiones, el historial y los ejercicios personalizados de esta app.</p>
+        <button class="btn-delete-all" id="wipeAllBtn">Borrar todos los datos</button>
+      </div>`;
+
+    document.getElementById('exportBackupBtn').addEventListener('click', exportAllData);
+    document.getElementById('importBackupBtn').addEventListener('click', () => {
+      document.getElementById('importFileInput').click();
+    });
+    document.getElementById('wipeAllBtn').addEventListener('click', wipeAllData);
+  }
+
+  document.getElementById('importFileInput').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    importAllData(file);
+    e.target.value = '';
+  });
 
   // ---------------- rest timer ----------------
   const restBar = document.getElementById('restBar');
