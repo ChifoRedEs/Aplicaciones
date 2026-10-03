@@ -48,7 +48,7 @@ nav button.on{color:var(--blue)}
 .ng .c.f{background:var(--ink)}
 .ng .c.m5{border-right:2px solid var(--ink)}.ng .c.b5{border-bottom:2px solid var(--ink)}
 .ng .ok{color:#1E8E4E}
-/* checkers: pistas fijas para que las casillas nunca cambien de tamaño */
+/* checkers */
 .ck{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));width:min(100%,440px);aspect-ratio:1;margin:10px auto;border:3px solid var(--dark);border-radius:6px;overflow:hidden}
 .ck .sq{display:flex;align-items:center;justify-content:center;background:var(--light);position:relative;min-width:0;min-height:0;overflow:hidden}
 .ck .sq.d{background:var(--dark)}
@@ -169,12 +169,10 @@ document.addEventListener('keydown',e=>{
 /* ---------- NONOGRAM ---------- */
 let N=null;
 const NSIZES=[5,10,15,20];
-const NDENS={facil:.66,medio:.57,dificil:.48};      // menos casillas rellenas = pistas menos evidentes
+const NDENS={facil:.66,medio:.57,dificil:.48};
 const NCELL={5:52,10:34,15:26,20:20},NFONT={5:14,10:12,15:11,20:10};
 const runs=l=>{const r=[];let k=0;l.forEach(v=>{if(v==1)k++;else if(k){r.push(k);k=0}});if(k)r.push(k);return r.length?r:[0]};
 const colsOf=(g,n)=>[...Array(n).keys()].map(j=>g.map(r=>r[j]));
-
-// Resuelve una línea: devuelve 1 (seguro relleno), 0 (seguro vacío), -1 (desconocido) o null si es imposible
 function lineSolve(line,clues){
   const n=line.length,k=(clues.length==1&&clues[0]==0)?0:clues.length,memo=new Map();
   const canPlace=(i,j)=>{const L=clues[j];if(i+L>n)return false;for(let x=i;x<i+L;x++)if(line[x]==0)return false;return !(i+L<n&&line[i+L]==1)};
@@ -201,7 +199,6 @@ function lineSolve(line,clues){
   walk(0,0);
   return line.map((v,x)=>cF[x]&&cE[x]?-1:cF[x]?1:0);
 }
-// Comprueba si el panel se resuelve solo con lógica (solución única, sin adivinar) y cuántas pasadas necesita
 function solveGrid(rc,cc,n){
   const g=Array.from({length:n},()=>Array(n).fill(-1));let passes=0,changed=true;
   while(changed){
@@ -284,7 +281,7 @@ function newDamas(){
   C={b,sel:null,turn:'w',over:false,msg:'Tu turno (blancas).'};C.moves=allMoves(b,'w');
 }
 function aiMove(){
-  if(!C||C.turn!='b'||C.over)return;   // la partida cambió mientras "pensaba"
+  if(!C||C.turn!='b'||C.over)return; 
   const ms=allMoves(C.b,'b');
   if(!ms.length){C.over=true;C.msg='¡Has ganado!';persist();if(view=='damas')rDamas();return}
   let best=null,bs=-1e9;
@@ -318,7 +315,6 @@ function rDamas(){
 }
 
 /* ---------- PARCHÍS ---------- */
-// Posición de cada ficha (relativa a su color): -1 casa · 0 salida · 0..63 vuelta de 68 casillas · 64..70 pasillo · 71 meta
 const PC=['am','az','ro','ve'];
 const PNAME={am:'Amarillo',az:'Azul',ro:'Rojo',ve:'Verde'};
 const PCOL={am:'#F2B84B',az:'#2B6CB0',ro:'#D6453D',ve:'#2E9E5B'};
@@ -329,7 +325,7 @@ const PHOUSE={am:[110,110],az:[110,0],ro:[0,0],ve:[0,110]};
 const PMETA={am:[95,104,1,0],az:[104,95,0,1],ro:[95,86,1,0],ve:[86,95,0,1]};
 const PTRI={am:'80,110 110,110 95,95',az:'110,80 110,110 95,95',ro:'80,80 110,80 95,95',ve:'80,80 80,110 95,95'};
 const PCORR=(c,k)=>({am:[18-k,9],az:[9,18-k],ro:[k,9],ve:[9,k]})[c];
-const PTRACK=[null];   // casilla 1..68 -> [fila, columna] en una rejilla de 19×19
+const PTRACK=[null];
 for(let n=1;n<=68;n++){let r,c;
   if(n<=8){r=19-n;c=10}else if(n<=16){r=10;c=n+2}else if(n==17){r=9;c=18}
   else if(n<=25){r=8;c=36-n}else if(n<=33){r=33-n;c=10}else if(n==34){r=0;c=9}
@@ -337,11 +333,15 @@ for(let n=1;n<=68;n++){let r,c;
   else if(n<=59){r=10;c=n-52}else if(n<=67){r=n-49;c=8}else{r=18;c=9}
   PTRACK.push([r,c])}
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+
 let P=null,pTimer=null,pCfg={am:'h',az:'c',ro:'c',ve:'c'};
+let pCfgFreeExit=false, pCfgDiff='medio';
+
 const absOf=(c,p)=>(PSTART[c]-1+p)%68+1;
 const pKey=(c,p)=>p<=63?'T'+absOf(c,p):c+p;
 const pCur=()=>P.order[P.turn];
 const pCPU=c=>P.cfg[c]=='c';
+
 function pOcc(){
   const o={};
   for(const c of P.order)P.pieces[c].forEach((p,i)=>{if(p<0||p==71)return;const k=pKey(c,p);(o[k]=o[k]||[]).push({c,i})});
@@ -349,23 +349,22 @@ function pOcc(){
 }
 function pLegal(c,step,kind){
   const o=pOcc(),pc=P.pieces[c],res=[];
-  // con un 5 es obligatorio sacar ficha si se puede
-  if(kind=='die'&&step==5&&pc.includes(-1)){
+  const firstFree = P.cfgFreeExit && pc.every(p=>p==-1);
+  if(kind=='die'&&(step==5||firstFree)&&pc.includes(-1)){
     const here=o['T'+PSTART[c]]||[];let cap=null,ok=true;
     if(here.length>=2){cap=here.find(x=>x.c!=c)||null;if(!cap)ok=false}
     if(ok){pc.forEach((p,i)=>{if(p==-1)res.push({c,i,from:-1,to:0,cap})});return res}
   }
   pc.forEach((p,i)=>{
     if(p<0||p==71)return;
-    const t=p+step;if(t>71)return;                      // a meta hay que entrar con el número exacto
-    for(let x=p+1;x<t;x++){const h=o[pKey(c,x)]||[];if(h.length==2&&h[0].c==h[1].c)return}   // barrera
+    const t=p+step;if(t>71)return;
+    for(let x=p+1;x<t;x++){const h=o[pKey(c,x)]||[];if(h.length==2&&h[0].c==h[1].c)return}
     let cap=null;
     if(t<71){const h=o[pKey(c,t)]||[];
       if(h.length>=2)return;
       if(h.length==1&&h[0].c!=c&&t<=63&&!PSAFE.has(absOf(c,t)))cap=h[0]}
     res.push({c,i,from:p,to:t,cap});
   });
-  // con un 6 hay que abrir barrera propia si es posible
   if(kind=='die'&&step>=6){
     const cells={};pc.forEach((p,i)=>{if(p>=0&&p<=63)(cells[absOf(c,p)]=cells[absOf(c,p)]||[]).push(i)});
     const bar=Object.values(cells).filter(a=>a.length==2).flat();
@@ -373,14 +372,14 @@ function pLegal(c,step,kind){
   }
   return res;
 }
-function pDanger(c,a){   // cuántas fichas rivales podrían alcanzar la casilla a con una tirada
+function pDanger(c,a){
   let n=0;
   for(const o of P.order){if(o==c)continue;
     P.pieces[o].forEach(p=>{if(p<0||p>63)return;const d=(a-absOf(o,p)+68)%68;if(d>=1&&d<=7&&p+d<=63)n++})}
   return n;
 }
-function pScore(m){
-  const c=m.c;let s=Math.random()*2;
+function pScore(m, diff){
+  const c=m.c;let s= diff==='dificil' ? 0 : Math.random()*5;
   if(m.from==-1)s+=50;
   if(m.cap)s+=60+P.pieces[m.cap.c][m.cap.i]*.4;
   if(m.to==71)s+=90;else if(m.to>63&&m.from<=63)s+=35;
@@ -394,7 +393,7 @@ function pScore(m){
 function pLog(t){P.log.unshift(t);if(P.log.length>5)P.log.length=5}
 function newParchis(){
   const order=PC.filter(c=>pCfg[c]);
-  P={cfg:{...pCfg},order,pieces:Object.fromEntries(order.map(c=>[c,[-1,-1,-1,-1]])),turn:rnd(order.length),
+  P={cfg:{...pCfg}, cfgFreeExit: pCfgFreeExit, cfgDiff: pCfgDiff, order,pieces:Object.fromEntries(order.map(c=>[c,[-1,-1,-1,-1]])),turn:rnd(order.length),
      phase:'roll',die:null,step:0,kind:'die',pend:[],sixes:0,again:false,lastMoved:null,winner:null,note:'',log:[],moves:[]};
   pLog(`Empieza ${PNAME[pCur()]}.`);
 }
@@ -402,12 +401,21 @@ function pSchedule(fn,ms){
   clearTimeout(pTimer);
   pTimer=setTimeout(()=>{pTimer=null;if(!P)return;if(view!='parchis'){P.paused=true;return}fn()},ms);
 }
-function pDrive(){   // avanza solo los pasos automáticos: CPU y avisos sin movimiento
+function pDrive(){
   if(!P||P.phase=='over')return;
   const c=pCur();
   if(P.phase=='pass')pSchedule(pContinue,1200);
   else if(pCPU(c)&&P.phase=='roll')pSchedule(pRoll,700);
-  else if(pCPU(c)&&P.phase=='move')pSchedule(()=>{const sc=P.moves.map(pScore);pDo(P.moves[sc.indexOf(Math.max(...sc))])},650);
+  else if(pCPU(c)&&P.phase=='move')pSchedule(()=>{
+    let chosen;
+    if (P.cfgDiff === 'facil') {
+      chosen = P.moves[rnd(P.moves.length)];
+    } else {
+      const sc=P.moves.map(m => pScore(m, P.cfgDiff));
+      chosen = P.moves[sc.indexOf(Math.max(...sc))];
+    }
+    pDo(chosen);
+  },650);
 }
 function pUpdate(){if(view=='parchis')rParchis();else persist();pDrive()}
 function pSetStep(step,kind){
@@ -478,7 +486,6 @@ function pBoard(){
   if(human){const seen=new Set();
     for(const m of P.moves){if(m.to==71||seen.has(m.to))continue;seen.add(m.to);const[x,y]=pXY(m.c,m.to,0);
       s+=`<circle cx="${x}" cy="${y}" r="2.2" fill="none" stroke="${PCOL[m.c]}" stroke-width="1" stroke-dasharray="1 .8"/>`}}
-  // fichas: dos en la misma casilla se dibujan una al lado de la otra
   const grp={},list=[];
   for(const c of P.order)P.pieces[c].forEach((p,i)=>{
     let[x,y]=pXY(c,p,i);
@@ -505,6 +512,16 @@ function rParchis(){
     <p class="note">Elige quién juega con cada color. Hacen falta al menos 2 jugadores; varias personas pueden jugar en el mismo dispositivo por turnos.</p>
     ${PC.map(c=>`<div class="prow"><span class="dot" style="background:${PCOL[c]}"></span><b>${PNAME[c]}</b><div class="seg">
       ${[['h','Persona'],['c','CPU'],['n','Nadie']].map(([t,l])=>`<button class="btn ${(pCfg[c]||'n')==t?'on':''}" data-a="pCfg" data-v="${c},${t}">${l}</button>`).join('')}</div></div>`).join('')}
+    
+    <div class="bar">
+      <span class="lbl">Regla rápida:</span>
+      <button class="btn ${pCfgFreeExit?'on':''}" data-a="pTogFree">1ª ficha sin 5</button>
+    </div>
+    <div class="bar">
+      <span class="lbl">Nivel CPU:</span>
+      ${[['facil','Fácil'],['medio','Medio'],['dificil','Difícil']].map(([v,l])=>`<button class="btn ${pCfgDiff==v?'on':''}" data-a="pSetDiff" data-v="${v}">${l}</button>`).join('')}
+    </div>
+
     <div class="bar"><button class="btn on" data-a="pStart" ${n<2?'disabled':''}>Empezar partida</button>${n<2?'<span class="note">Elige al menos 2 jugadores.</span>':''}</div>
     <details><summary>Reglas</summary><ul>
       <li>Sacas ficha de casa con un 5. Si puedes sacar, es obligatorio.</li>
@@ -543,10 +560,12 @@ function pValid(x){
 function pRestore(x){
   clearTimeout(pTimer);
   const cfg={};PC.forEach(c=>cfg[c]=x.order.includes(c)?x.cfg[c]:null);
-  P={cfg,order:x.order.slice(),pieces:Object.fromEntries(x.order.map(c=>[c,x.pieces[c].slice()])),turn:x.turn,phase:x.phase,die:x.die??null,
+  P={cfg, cfgFreeExit: !!x.cfgFreeExit, cfgDiff: x.cfgDiff || 'medio', order:x.order.slice(),pieces:Object.fromEntries(x.order.map(c=>[c,x.pieces[c].slice()])),turn:x.turn,phase:x.phase,die:x.die??null,
      step:x.step,kind:x.kind,pend:x.pend.slice(),sixes:x.sixes,again:!!x.again,lastMoved:x.lastMoved??null,winner:x.phase=='over'?x.winner:null,
      note:'',log:['Partida cargada.'],moves:[],paused:true};
   pCfg={...cfg};
+  pCfgFreeExit = P.cfgFreeExit;
+  pCfgDiff = P.cfgDiff;
   if(P.phase=='move'){P.moves=pLegal(pCur(),P.step,P.kind);if(!P.moves.length){P.phase='pass';P.note='Sin movimientos posibles.'}}
   if(P.phase=='pass')P.note=P.note||'Continuando…';
 }
@@ -560,7 +579,7 @@ function snapshot(){
     sudoku:S&&{sol:S.sol,cur:S.cur,given:S.given,level:S.level},
     nonogram:N&&{n:N.n,diff:N.diff,sol:N.sol,cur:N.cur},
     damas:C&&{b:C.b,turn:C.turn},
-    parchis:P&&{cfg:P.cfg,order:P.order,pieces:P.pieces,turn:P.turn,phase:P.phase,die:P.die,step:P.step,kind:P.kind,pend:P.pend,sixes:P.sixes,again:P.again,lastMoved:P.lastMoved,winner:P.winner}
+    parchis:P&&{cfg:P.cfg,order:P.order,pieces:P.pieces,turn:P.turn,phase:P.phase,die:P.die,step:P.step,kind:P.kind,pend:P.pend,sixes:P.sixes,again:P.again,lastMoved:P.lastMoved,winner:P.winner, cfgFreeExit: P.cfgFreeExit, cfgDiff: P.cfgDiff}
   };
 }
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(snapshot()))}catch(e){}}
@@ -632,6 +651,8 @@ const ACT={
   nCell:v=>{if(N.done)return;const[i,j]=v.split(',').map(Number),t=N.mode=='f'?1:2;N.cur[i][j]=N.cur[i][j]==t?0:t;rNono()},
   dNew:()=>{newDamas();rDamas()},
   pCfg:v=>{const[c,t]=v.split(',');pCfg[c]=t=='n'?null:t;rParchis()},
+  pTogFree: () => { pCfgFreeExit = !pCfgFreeExit; rParchis(); },
+  pSetDiff: v => { pCfgDiff = v; rParchis(); },
   pStart:()=>{if(PC.filter(c=>pCfg[c]).length<2)return;newParchis();pUpdate()},
   pSetup:()=>{if(P&&P.phase!='over'&&!confirm('¿Abandonar la partida actual?'))return;clearTimeout(pTimer);P=null;rParchis()},
   pRoll:()=>{if(P&&P.phase=='roll'&&!pCPU(pCur()))pRoll()},
