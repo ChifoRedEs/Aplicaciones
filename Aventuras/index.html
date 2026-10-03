@@ -49,7 +49,7 @@
         .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); flex: none; height: 250px; }
     }
 </style>
-<!-- Cargar los datos externos (Deben estar en la carpeta Textos) -->
+<!-- Cargar los datos externos -->
 <script src="Textos/items.js"></script>
 <script src="Textos/enemigos.js"></script>
 <script src="Textos/historia.js"></script>
@@ -63,6 +63,10 @@
 <div class="container">
     <aside class="sidebar">
         <div class="stat-box">
+            <!-- Sistema de Tiempo -->
+            <div class="stat-title">Calendario</div>
+            <div class="stat-value" id="ui-tiempo" style="font-size:14px; color:var(--green); margin-bottom: 15px;">Día 1 - Mañana (8:00)</div>
+
             <div class="stat-title">Estado Vital</div>
             <div style="display:flex; justify-content:space-between; font-size:12px;"><span>HP</span><span id="ui-hp">100/100</span></div>
             <div class="bar-bg"><div class="bar-fill bar-hp" id="bar-hp" style="width:100%"></div></div>
@@ -98,17 +102,17 @@
 </div>
 
 <script>
-// Estado del Jugador
 let player = {
     hp: 100, maxHp: 100,
     qi: 0,
-    rangoSecta: 0, // 0:Aspirante, 1:Común, 2:Maestro, 3:Anciano, 4:Líder
+    rangoSecta: 0, 
     secta: "Secta del Dragón Azur",
     inventario: {},
-    nodoActual: "inicio"
+    nodoActual: "inicio",
+    dia: 1, 
+    hora: 8 
 };
 
-// Sistema de Rangos de Cultivación basado en Puntos de Qi
 function getRangoCultivacion() {
     if (player.qi < 100) return `Condensación de Qi (Nivel ${Math.floor(player.qi/10)+1})`;
     if (player.qi < 1000) return `Espiritual de Qi (Nivel ${Math.floor((player.qi-100)/90)+1})`;
@@ -127,18 +131,22 @@ function logMsg(msg) {
 }
 
 function updateUI() {
+    // Actualizar Reloj
+    let tramo = player.hora >= 19 ? "Noche" : (player.hora >= 13 ? "Tarde" : "Mañana");
+    document.getElementById('ui-tiempo').innerText = `Día ${player.dia} - ${tramo} (${player.hora}:00)`;
+
+    // Actualizar HP y Qi
     document.getElementById('ui-hp').innerText = `${player.hp}/${player.maxHp}`;
     document.getElementById('bar-hp').style.width = `${(player.hp/player.maxHp)*100}%`;
     
     document.getElementById('ui-qi').innerText = player.qi;
-    // Barra de progreso relativa al siguiente hito (100, 1000, 5000)
     let meta = player.qi < 100 ? 100 : (player.qi < 1000 ? 1000 : 5000);
     document.getElementById('bar-qi').style.width = `${(player.qi/meta)*100}%`;
     
     document.getElementById('ui-rango').innerText = getRangoCultivacion();
     document.getElementById('ui-secta').innerText = `${player.secta} - ${getRangoSecta()}`;
     
-    // Dibujar Inventario
+    // Actualizar Inventario
     let invHtml = '';
     for (let itemId in player.inventario) {
         if (player.inventario[itemId] > 0) {
@@ -167,7 +175,6 @@ function consumir(itemId) {
 }
 
 function procesarAccion(opcion) {
-    // Comprobar requisitos
     if (opcion.reqItem) {
         if (!player.inventario[opcion.reqItem] || player.inventario[opcion.reqItem] < opcion.reqCant) {
             alert("No tienes los recursos necesarios.");
@@ -175,7 +182,6 @@ function procesarAccion(opcion) {
         }
     }
     
-    // Procesar acción
     if (opcion.accion === "item") {
         player.inventario[opcion.itemId] = (player.inventario[opcion.itemId] || 0) + opcion.cant;
         logMsg(`Obtienes: ${opcion.cant}x ${DB_ITEMS[opcion.itemId].nombre}`);
@@ -184,7 +190,11 @@ function procesarAccion(opcion) {
     } else if (opcion.accion === "stat") {
         if (opcion.stat === "nivelSecta") player.rangoSecta = opcion.valor;
         if (opcion.stat === "qi") player.qi += opcion.valor;
-        logMsg(`Tu cultivación ha cambiado.`);
+        if (opcion.stat === "maxHp") { 
+            player.maxHp += opcion.valor; 
+            player.hp = Math.min(player.maxHp, player.hp + opcion.valor); 
+        }
+        logMsg(`Tu estado ha cambiado.`);
     } else if (opcion.accion === "alquimia") {
         abrirAlquimia();
         return;
@@ -194,6 +204,17 @@ function procesarAccion(opcion) {
     } else if (opcion.accion === "reiniciar") {
         location.reload();
         return;
+    }
+
+    // Gestionar el paso del tiempo
+    if (opcion.tiempo) {
+        player.hora += opcion.tiempo;
+        if (player.hora >= 24) {
+            player.dia += Math.floor(player.hora / 24);
+            player.hora = player.hora % 24;
+            player.hp = Math.min(player.maxHp, player.hp + 30); 
+            logMsg(`Ha amanecido un nuevo día. Descansar restaura 30 HP.`);
+        }
     }
     
     updateUI();
@@ -223,22 +244,25 @@ function irANodo(nodoId) {
     document.getElementById('options-area').innerHTML = btnHtml;
 }
 
-// SISTEMA DE COMBATE (Lógica Rápida)
 function iniciarCombate(enemigoId, nodoVictoria, nodoDerrota) {
     const enemigo = DB_ENEMIGOS[enemigoId];
     logMsg(`¡Empieza el combate contra ${enemigo.nombre}!`);
     
-    // Cálculo básico: Buscar espada en inventario
-    let ataqueJugador = 2 + (Math.floor(player.qi / 10)); // Ataque base por Qi
+    let ataqueJugador = 2 + (Math.floor(player.qi / 10));
     if (player.inventario["espada_acero"] > 0) ataqueJugador += DB_ITEMS["espada_acero"].ataque;
     else if (player.inventario["espada_madera"] > 0) ataqueJugador += DB_ITEMS["espada_madera"].ataque;
 
+    let defensaJugador = 0;
+    if (player.inventario["tunica_seda"] > 0) defensaJugador = 3;
+
     let hpEnemigo = enemigo.hp;
     
-    // Simulación instantánea para fluidez del texto
     while (player.hp > 0 && hpEnemigo > 0) {
         hpEnemigo -= ataqueJugador;
-        if (hpEnemigo > 0) player.hp -= Math.max(1, (enemigo.ataque - Math.floor(player.qi/20)));
+        if (hpEnemigo > 0) {
+            let danoRecibido = Math.max(1, (enemigo.ataque - Math.floor(player.qi/20) - defensaJugador));
+            player.hp -= danoRecibido;
+        }
     }
     
     if (player.hp <= 0) {
@@ -256,7 +280,6 @@ function iniciarCombate(enemigoId, nodoVictoria, nodoDerrota) {
     }
 }
 
-// SISTEMA DE ALQUIMIA
 function abrirAlquimia() {
     document.getElementById('modal-alquimia').classList.add('active');
     let html = '';
@@ -285,15 +308,14 @@ function fabricar(idx) {
     player.inventario[receta.resultado] = (player.inventario[receta.resultado] || 0) + 1;
     logMsg(`Has refinado con éxito: ${DB_ITEMS[receta.resultado].nombre}.`);
     updateUI();
-    abrirAlquimia(); // Refrescar botones
+    abrirAlquimia();
 }
 
 function cerrarModal() {
     document.getElementById('modal-alquimia').classList.remove('active');
-    irANodo(player.nodoActual); // Recargar nodo para refrescar la vista
+    irANodo(player.nodoActual); 
 }
 
-// INICIO DEL JUEGO
 window.onload = () => {
     updateUI();
     irANodo("inicio");
@@ -301,4 +323,3 @@ window.onload = () => {
 </script>
 </body>
 </html>
-
