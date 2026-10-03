@@ -1,65 +1,88 @@
-
-// Textos/historia.js
 const DB_HISTORIA = {
     "inicio": {
-        texto: "Despiertas en una pequeña cabaña en las afueras de la Provincia del Este. El viento trae el eco de las campanas de la Secta del Dragón Azur. Eres un simple mortal, pero tu sueño es alcanzar la inmortalidad. El reclutamiento anual comienza hoy.",
+        texto: "Despiertas en tu pequeña cabaña. El reclutamiento de la Secta del Dragón Azur comienza hoy.",
         opciones: [
-            { texto: "Coger tu Espada de Bambú e ir al pueblo.", accion: "item", itemId: "espada_madera", cant: 1, nodoSig: "pueblo" },
-            { texto: "Buscar en tu baúl antes de salir.", accion: "item", itemId: "moneda", cant: 10, nodoSig: "baul_revisado" }
-        ]
-    },
-    "baul_revisado": {
-        texto: "Encuentras unos ahorros. Con esto podrás comprar comida o sobornar a algún guardia. Coges un viejo palo a modo de arma y sales de casa.",
-        opciones: [
-            { texto: "Dirigirte al pueblo.", nodoSig: "pueblo" }
+            { texto: "Coger tu Espada de Bambú e ir al pueblo. (Tarda 1 hora)", tiempo: 1, accion: "item", itemId: "espada_madera", cant: 1, nodoSig: "pueblo" }
         ]
     },
     "pueblo": {
-        texto: "El pueblo está a rebosar de jóvenes que aspiran a entrar en las 4 Grandes Sectas. Un matón local te corta el paso en un callejón: 'Paga peaje si quieres llegar al patio de pruebas, campesino'.",
+        texto: "Un matón local te corta el paso en un callejón: 'Paga peaje si quieres llegar al patio de pruebas, campesino'.",
         opciones: [
-            { texto: "Pagarle 10 monedas.", reqItem: "moneda", reqCant: 10, accion: "perderItem", itemId: "moneda", cant: 10, nodoSig: "entrada_secta" },
-            { texto: "¡Enfrentarte a él!", accion: "combate", enemigo: "ganster_callejero", nodoVictoria: "entrada_secta", nodoDerrota: "muerte" }
+            { texto: "¡Enfrentarte a él con tu espada de bambú! (Tarda 1 hora)", tiempo: 1, accion: "combate", enemigo: "ganster_callejero", nodoVictoria: "entrada_secta", nodoDerrota: "muerte" }
         ]
     },
     "muerte": {
-        texto: "Tu visión se oscurece. Tu camino hacia la inmortalidad ha terminado antes de empezar.",
-        opciones: [
-            { texto: "Reencarnar (Reiniciar)", accion: "reiniciar" }
-        ]
+        texto: "Has caído en combate. Tu camino hacia la inmortalidad ha terminado.",
+        opciones: [ { texto: "Reencarnar (Reiniciar)", accion: "reiniciar" } ]
     },
     "entrada_secta": {
-        texto: "Llegas al majestuoso patio de la Secta del Dragón Azur. Los Maestros Comunes evalúan tu talento. Tras una dura prueba física, un Anciano te asiente. 'Tienes un Qi débil, pero tu voluntad es fuerte. Eres aceptado como Discípulo Iniciado'.",
+        texto: "Llegas al patio. Un Anciano te evalúa y asiente. 'Eres aceptado como Discípulo Iniciado'. Un maestro te ofrece una sesión de meditación guiada de bienvenida.",
         opciones: [
-            { texto: "Comenzar entrenamiento.", accion: "stat", stat: "nivelSecta", valor: 1, nodoSig: "patio_central" } // 1 = Discípulo Común
+            { texto: "Aceptar la meditación guiada (+15 Qi). (Tarda 2 horas)", tiempo: 2, accion: "stat", stat: "qi", valor: 15, nodoSig: "patio_central" }
         ]
     },
     "patio_central": {
-        texto: "Estás en el Patio Central de la Secta. Aquí puedes decidir cómo pasar tu tiempo para mejorar tu cultivación antes del torneo de las 4 sectas.",
+        texto: "Estás en el Patio Central de la Secta. Diferentes caminos se abren ante ti. ¿Qué decides hacer?",
         opciones: [
-            { texto: "Ir al Bosque de Bambú (Recolectar y Combatir)", nodoSig: "bosque_bambu" },
-            { texto: "Ir al Horno de Alquimia", nodoSig: "horno_alquimia" },
-            { texto: "Meditar en tu celda (+5 Qi)", accion: "stat", stat: "qi", valor: 5, nodoSig: "patio_central" }
+            { texto: "Ir a los Jardines Exteriores (Caza Fácil - 2 horas)", tiempo: 2, nodoSig: "jardines" },
+            { texto: "Ir al Bosque de Bambú (Caza Peligrosa - 3 horas)", tiempo: 3, nodoSig: "bosque_bambu" },
+            { texto: "Entrar al Pabellón del Conocimiento (Acertijo - 1 hora)", tiempo: 1, nodoSig: "pabellon_acertijo" },
+            { texto: "Visitar los Barracones (Socializar - 1 hora)", tiempo: 1, nodoSig: "barracones" },
+            { texto: "Usar el Horno de Alquimia", nodoSig: "horno_alquimia" },
+            { texto: "Dormir en tus aposentos (Descansar - 8 horas)", tiempo: 8, nodoSig: "patio_central" }
+        ]
+    },
+    "jardines": {
+        texto: "Los jardines exteriores son seguros, aunque hay plagas escurridizas comiéndose las hierbas espirituales.",
+        opciones: [
+            { texto: "Atacar a una Rata Busca-Tesoros", accion: "combate", enemigo: "rata_espiritual", nodoVictoria: "patio_central", nodoDerrota: "muerte" },
+            { texto: "Atacar a un Mono Ladrón", accion: "combate", enemigo: "mono_ladron", nodoVictoria: "patio_central", nodoDerrota: "muerte" },
+            { texto: "Volver al Patio", nodoSig: "patio_central" }
         ]
     },
     "bosque_bambu": {
-        texto: "El bosque está lleno de energía espiritual, pero también de bestias salvajes. Ves unas hojas brillantes a lo lejos.",
+        texto: "El espeso bosque alberga bestias salvajes con valiosos Lirios de Fuego en su territorio.",
         opciones: [
-            { texto: "Recolectar Hierba de Qi.", accion: "item", itemId: "hierba_qi", cant: 1, nodoSig: "encuentro_bosque" },
-            { texto: "Volver al Patio.", nodoSig: "patio_central" }
-        ]
-    },
-    "encuentro_bosque": {
-        texto: "Mientras recolectas, un Lobo de Ojos Rojos salta de la maleza gruñendo.",
-        opciones: [
-            { texto: "¡Luchar!", accion: "combate", enemigo: "lobo_espiritual", nodoVictoria: "patio_central", nodoDerrota: "muerte" },
-            { texto: "Huir rápidamente al patio.", nodoSig: "patio_central" }
+            { texto: "Luchar contra el Lobo de Ojos Rojos", accion: "combate", enemigo: "lobo_espiritual", nodoVictoria: "patio_central", nodoDerrota: "muerte" },
+            { texto: "Buscar a un Bandido del Camino", accion: "combate", enemigo: "bandido_camino", nodoVictoria: "patio_central", nodoDerrota: "muerte" },
+            { texto: "Volver al Patio", nodoSig: "patio_central" }
         ]
     },
     "horno_alquimia": {
-        texto: "El calor del horno inmenso calienta la sala. Aquí puedes usar tus hierbas para refinar píldoras.",
+        texto: "El calor del inmenso horno inunda la sala. Aquí refinarás tus plantas.",
         opciones: [
             { texto: "Abrir menú de Alquimia", accion: "alquimia", nodoSig: "horno_alquimia" },
             { texto: "Volver al Patio", nodoSig: "patio_central" }
         ]
+    },
+    "pabellon_acertijo": {
+        texto: "El Maestro Sabio acaricia su barba. 'Joven discípulo. Te daré una armadura de seda si resuelves este enigma: Soy ligero como una pluma, pero ni el gigante más fuerte puede sostenerme mucho tiempo. ¿Qué soy?'",
+        opciones: [
+            { texto: "Responder: 'El aliento'", accion: "item", itemId: "tunica_seda", cant: 1, nodoSig: "acertijo_correcto" },
+            { texto: "Responder: 'El agua'", nodoSig: "acertijo_incorrecto" },
+            { texto: "Responder: 'La sombra'", nodoSig: "acertijo_incorrecto" }
+        ]
+    },
+    "acertijo_correcto": {
+        texto: "El Maestro sonríe complacido. 'Excelente mente. Toma esta túnica, aumentará tu vitalidad máxima y te protegerá'.",
+        opciones: [
+            { texto: "Equipar Túnica (+20 Max HP) y volver.", accion: "stat", stat: "maxHp", valor: 20, nodoSig: "patio_central" }
+        ]
+    },
+    "acertijo_incorrecto": {
+        texto: "El Maestro suspira decepcionado. 'Tu mente aún está nublada por la ignorancia terrenal. Vuelve a tus tareas'.",
+        opciones: [ { texto: "Volver al Patio", nodoSig: "patio_central" } ]
+    },
+    "barracones": {
+        texto: "Encuentras a Wang, un discípulo mayor arrogante. '¡Eh, novato! Dame todas tus monedas o te enseñaré a respetar a tus superiores'.",
+        opciones: [
+            { texto: "Darle 10 monedas.", reqItem: "moneda", reqCant: 10, accion: "perderItem", itemId: "moneda", cant: 10, nodoSig: "patio_central" },
+            { texto: "¡Desenvainar tu espada y negarte!", accion: "combate", enemigo: "discipulo_arrogante", nodoVictoria: "victoria_wang", nodoDerrota: "muerte" },
+            { texto: "Ignorarlo y huir rápidamente.", nodoSig: "patio_central" }
+        ]
+    },
+    "victoria_wang": {
+        texto: "Wang escupe sangre y te mira con terror. '¡Me las pagarás!'. Le quitas sus pertenencias de valor.",
+        opciones: [ { texto: "Volver al Patio triunfante.", nodoSig: "patio_central" } ]
     }
 };
