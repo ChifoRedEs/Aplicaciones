@@ -64,6 +64,29 @@ nav button.on{color:var(--blue)}
 .file{position:relative;overflow:hidden}
 .file input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .note{color:var(--mut);font-size:13px}
+.btn:disabled{opacity:.45;cursor:default}
+/* parchís */
+.pz{width:min(100%,460px);margin:10px auto}
+.pz svg{width:100%;height:auto;display:block;border-radius:8px;border:2px solid var(--ink)}
+.pz .mv{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.pz .mv{animation:none}}
+.pbar{display:flex;gap:14px;align-items:center;margin:8px 0}
+.pbar .msg{margin:0}
+.die{flex:none;width:58px;height:58px;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:8px;background:var(--card);border:3px solid var(--pc);border-radius:12px;cursor:pointer}
+.die i{width:10px;height:10px;border-radius:50%;margin:auto}
+.die i.on{background:var(--ink)}
+.die.q{display:flex;align-items:center;justify-content:center;font:800 26px 'Baloo 2',sans-serif;color:var(--mut)}
+.plog{list-style:none;padding:0;margin:4px 0;font-size:13px;color:var(--mut)}
+.plog li:first-child{color:var(--ink);font-weight:700}
+.prow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0;flex-wrap:wrap}
+.prow b{font-family:'Baloo 2',system-ui,sans-serif;font-size:18px;flex:1;min-width:80px}
+.dot{width:18px;height:18px;border-radius:50%;flex:none;border:2px solid rgba(0,0,0,.25)}
+.seg{display:flex;gap:6px}
+.seg .btn{padding:6px 10px}
+details{margin:12px 0;font-size:14px;color:var(--mut)}
+details summary{cursor:pointer;font-weight:700;color:var(--ink)}
+details li{margin:3px 0}
 </style>
 </head>
 <body>
@@ -73,13 +96,13 @@ nav button.on{color:var(--blue)}
 const $=s=>document.querySelector(s);
 const rnd=n=>Math.floor(Math.random()*n);
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
-const TABS=[['home','🏠','Inicio'],['sudoku','🔢','Sudoku'],['nono','🖼️','Nonogram'],['damas','⚫','Damas'],['save','💾','Guardado']];
+const TABS=[['home','🏠','Inicio'],['sudoku','🔢','Sudoku'],['nono','🖼️','Nonogram'],['damas','⚫','Damas'],['parchis','🎲','Parchís'],['save','💾','Guardado']];
 const LVL={facil:'Fácil',medio:'Medio',dificil:'Difícil'};
 let view='home';
 function go(v){view=v;render()}
 function render(){
   $('#nav').innerHTML=TABS.map(t=>`<button class="${t[0]==view?'on':''}" data-go="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join('');
-  ({home:rHome,sudoku:rSudoku,nono:rNono,damas:rDamas,save:rSave})[view]();
+  ({home:rHome,sudoku:rSudoku,nono:rNono,damas:rDamas,parchis:rParchis,save:rSave})[view]();
   window.scrollTo(0,0);
 }
 document.addEventListener('click',e=>{
@@ -94,8 +117,9 @@ function rHome(){
   <button class="card" style="--c:var(--blue)" data-go="sudoku"><h2>Sudoku</h2><p>Completa la cuadrícula sin repetir números. 3 niveles.</p></button>
   <button class="card" style="--c:var(--yel)" data-go="nono"><h2>Nonogram</h2><p>Descubre el dibujo con las pistas. 4 tamaños y 3 dificultades.</p></button>
   <button class="card" style="--c:var(--red)" data-go="damas"><h2>Damas</h2><p>Juega con blancas contra la máquina. Captura obligatoria.</p></button>
+  <button class="card" style="--c:#2E9E5B" data-go="parchis"><h2>Parchís</h2><p>De 2 a 4 jugadores, personas o CPU, en el mismo dispositivo.</p></button>
   <button class="card" style="--c:var(--mut)" data-go="save"><h2>Guardado</h2><p>Exporta o importa tu progreso en un archivo .json.</p></button>
-  <div class="soon">Próximamente: Solitario Klondike y Parchís.</div>`;
+  <div class="soon">Próximamente: Solitario Klondike.</div>`;
 }
 
 /* ---------- SUDOKU ---------- */
@@ -293,6 +317,240 @@ function rDamas(){
   persist();
 }
 
+/* ---------- PARCHÍS ---------- */
+// Posición de cada ficha (relativa a su color): -1 casa · 0 salida · 0..63 vuelta de 68 casillas · 64..70 pasillo · 71 meta
+const PC=['am','az','ro','ve'];
+const PNAME={am:'Amarillo',az:'Azul',ro:'Rojo',ve:'Verde'};
+const PCOL={am:'#F2B84B',az:'#2B6CB0',ro:'#D6453D',ve:'#2E9E5B'};
+const PINK={am:'#1B2A3A',az:'#fff',ro:'#fff',ve:'#fff'};
+const PSTART={am:5,az:22,ro:39,ve:56};
+const PSAFE=new Set([5,12,17,22,29,34,39,46,51,56,63,68]);
+const PHOUSE={am:[110,110],az:[110,0],ro:[0,0],ve:[0,110]};
+const PMETA={am:[95,104,1,0],az:[104,95,0,1],ro:[95,86,1,0],ve:[86,95,0,1]};
+const PTRI={am:'80,110 110,110 95,95',az:'110,80 110,110 95,95',ro:'80,80 110,80 95,95',ve:'80,80 80,110 95,95'};
+const PCORR=(c,k)=>({am:[18-k,9],az:[9,18-k],ro:[k,9],ve:[9,k]})[c];
+const PTRACK=[null];   // casilla 1..68 -> [fila, columna] en una rejilla de 19×19
+for(let n=1;n<=68;n++){let r,c;
+  if(n<=8){r=19-n;c=10}else if(n<=16){r=10;c=n+2}else if(n==17){r=9;c=18}
+  else if(n<=25){r=8;c=36-n}else if(n<=33){r=33-n;c=10}else if(n==34){r=0;c=9}
+  else if(n<=42){r=n-35;c=8}else if(n<=50){r=8;c=50-n}else if(n==51){r=9;c=0}
+  else if(n<=59){r=10;c=n-52}else if(n<=67){r=n-49;c=8}else{r=18;c=9}
+  PTRACK.push([r,c])}
+const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+let P=null,pTimer=null,pCfg={am:'h',az:'c',ro:'c',ve:'c'};
+const absOf=(c,p)=>(PSTART[c]-1+p)%68+1;
+const pKey=(c,p)=>p<=63?'T'+absOf(c,p):c+p;
+const pCur=()=>P.order[P.turn];
+const pCPU=c=>P.cfg[c]=='c';
+function pOcc(){
+  const o={};
+  for(const c of P.order)P.pieces[c].forEach((p,i)=>{if(p<0||p==71)return;const k=pKey(c,p);(o[k]=o[k]||[]).push({c,i})});
+  return o;
+}
+function pLegal(c,step,kind){
+  const o=pOcc(),pc=P.pieces[c],res=[];
+  // con un 5 es obligatorio sacar ficha si se puede
+  if(kind=='die'&&step==5&&pc.includes(-1)){
+    const here=o['T'+PSTART[c]]||[];let cap=null,ok=true;
+    if(here.length>=2){cap=here.find(x=>x.c!=c)||null;if(!cap)ok=false}
+    if(ok){pc.forEach((p,i)=>{if(p==-1)res.push({c,i,from:-1,to:0,cap})});return res}
+  }
+  pc.forEach((p,i)=>{
+    if(p<0||p==71)return;
+    const t=p+step;if(t>71)return;                      // a meta hay que entrar con el número exacto
+    for(let x=p+1;x<t;x++){const h=o[pKey(c,x)]||[];if(h.length==2&&h[0].c==h[1].c)return}   // barrera
+    let cap=null;
+    if(t<71){const h=o[pKey(c,t)]||[];
+      if(h.length>=2)return;
+      if(h.length==1&&h[0].c!=c&&t<=63&&!PSAFE.has(absOf(c,t)))cap=h[0]}
+    res.push({c,i,from:p,to:t,cap});
+  });
+  // con un 6 hay que abrir barrera propia si es posible
+  if(kind=='die'&&step>=6){
+    const cells={};pc.forEach((p,i)=>{if(p>=0&&p<=63)(cells[absOf(c,p)]=cells[absOf(c,p)]||[]).push(i)});
+    const bar=Object.values(cells).filter(a=>a.length==2).flat();
+    if(bar.length){const f=res.filter(m=>bar.includes(m.i));if(f.length)return f}
+  }
+  return res;
+}
+function pDanger(c,a){   // cuántas fichas rivales podrían alcanzar la casilla a con una tirada
+  let n=0;
+  for(const o of P.order){if(o==c)continue;
+    P.pieces[o].forEach(p=>{if(p<0||p>63)return;const d=(a-absOf(o,p)+68)%68;if(d>=1&&d<=7&&p+d<=63)n++})}
+  return n;
+}
+function pScore(m){
+  const c=m.c;let s=Math.random()*2;
+  if(m.from==-1)s+=50;
+  if(m.cap)s+=60+P.pieces[m.cap.c][m.cap.i]*.4;
+  if(m.to==71)s+=90;else if(m.to>63&&m.from<=63)s+=35;
+  s+=(m.to-Math.max(m.from,0))*.4;
+  if(m.from>=0&&m.from<=63&&!PSAFE.has(absOf(c,m.from)))s+=pDanger(c,absOf(c,m.from))*15;
+  if(m.to<=63){const a=absOf(c,m.to);
+    if(PSAFE.has(a))s+=12;else s-=pDanger(c,a)*18;
+    if(P.pieces[c].some((p,j)=>j!=m.i&&p>=0&&p<=63&&absOf(c,p)==a))s+=6}
+  return s;
+}
+function pLog(t){P.log.unshift(t);if(P.log.length>5)P.log.length=5}
+function newParchis(){
+  const order=PC.filter(c=>pCfg[c]);
+  P={cfg:{...pCfg},order,pieces:Object.fromEntries(order.map(c=>[c,[-1,-1,-1,-1]])),turn:rnd(order.length),
+     phase:'roll',die:null,step:0,kind:'die',pend:[],sixes:0,again:false,lastMoved:null,winner:null,note:'',log:[],moves:[]};
+  pLog(`Empieza ${PNAME[pCur()]}.`);
+}
+function pSchedule(fn,ms){
+  clearTimeout(pTimer);
+  pTimer=setTimeout(()=>{pTimer=null;if(!P)return;if(view!='parchis'){P.paused=true;return}fn()},ms);
+}
+function pDrive(){   // avanza solo los pasos automáticos: CPU y avisos sin movimiento
+  if(!P||P.phase=='over')return;
+  const c=pCur();
+  if(P.phase=='pass')pSchedule(pContinue,1200);
+  else if(pCPU(c)&&P.phase=='roll')pSchedule(pRoll,700);
+  else if(pCPU(c)&&P.phase=='move')pSchedule(()=>{const sc=P.moves.map(pScore);pDo(P.moves[sc.indexOf(Math.max(...sc))])},650);
+}
+function pUpdate(){if(view=='parchis')rParchis();else persist();pDrive()}
+function pSetStep(step,kind){
+  P.step=step;P.kind=kind;P.moves=pLegal(pCur(),step,kind);
+  if(P.moves.length)P.phase='move';
+  else{P.phase='pass';P.note=kind=='bonus'?`Ninguna ficha puede contar ${step}: se pierde el premio.`:`${PNAME[pCur()]} no puede mover.`}
+}
+function pRoll(){
+  if(!P||P.phase!='roll')return;
+  const c=pCur(),v=1+rnd(6);P.die=v;P.again=false;P.note='';
+  if(v==6){
+    P.sixes++;
+    if(P.sixes==3){
+      P.sixes=0;const i=P.lastMoved,p=i==null?-1:P.pieces[c][i];
+      if(p>=0&&p<=63){P.pieces[c][i]=-1;P.note='Tercer 6 seguido: la última ficha movida vuelve a casa.'}
+      else P.note='Tercer 6 seguido: se acaba el turno.';
+      pLog(`${PNAME[c]} saca el tercer 6 seguido.`);P.phase='pass';return pUpdate();
+    }
+    P.again=true;
+  }else P.sixes=0;
+  const step=v==6&&!P.pieces[c].includes(-1)?7:v;
+  pLog(`${PNAME[c]} saca ${v}${step==7?' (cuenta 7)':''}.`);
+  pSetStep(step,'die');pUpdate();
+}
+function pDo(m){
+  if(!P||P.phase!='move')return;
+  const c=m.c;P.pieces[c][m.i]=m.to;
+  if(m.from==-1)pLog(`${PNAME[c]} saca una ficha de casa.`);
+  if(m.cap){P.pieces[m.cap.c][m.cap.i]=-1;P.pend.push(20);pLog(`${PNAME[c]} se come una ficha de ${PNAME[m.cap.c]} y cuenta 20.`)}
+  if(m.to==71){P.pend.push(10);pLog(`${PNAME[c]} mete una ficha en meta y cuenta 10.`)}
+  if(P.kind=='die')P.lastMoved=m.i;
+  if(P.pieces[c].every(p=>p==71)){P.phase='over';P.winner=c;P.pend=[];clearTimeout(pTimer);pLog(`¡${PNAME[c]} gana la partida!`);return pUpdate()}
+  pContinue();
+}
+function pContinue(){
+  if(!P||P.phase=='over')return;
+  P.note='';
+  if(P.pend.length)pSetStep(P.pend.shift(),'bonus');
+  else if(P.again){P.again=false;P.phase='roll';pLog(`${PNAME[pCur()]} vuelve a tirar.`)}
+  else{P.turn=(P.turn+1)%P.order.length;P.sixes=0;P.lastMoved=null;P.phase='roll';P.die=null}
+  pUpdate();
+}
+function pXY(c,p,i){
+  if(p==-1){const[hx,hy]=PHOUSE[c];return[hx+40+(i%2?9:-9),hy+40+(i<2?-9:9)]}
+  if(p==71){const[mx,my,dx,dy]=PMETA[c],o=(i-1.5)*4.6;return[mx+dx*o,my+dy*o]}
+  const[r,cc]=p<=63?PTRACK[absOf(c,p)]:PCORR(c,p-63);
+  return[cc*10+5,r*10+5];
+}
+function pBoard(){
+  const cur=P&&P.phase!='over'?pCur():null,human=P&&P.phase=='move'&&!pCPU(cur);
+  let s=`<svg viewBox="0 0 190 190" role="img" aria-label="Tablero de parchís"><rect width="190" height="190" style="fill:var(--card)"/>`;
+  for(const c of PC){
+    const[hx,hy]=PHOUSE[c],cf=P?P.cfg[c]:pCfg[c],on=!!cf;
+    s+=`<g opacity="${on?1:.3}"><rect x="${hx}" y="${hy}" width="80" height="80" fill="${PCOL[c]}"/>${cur==c?`<rect x="${hx+2}" y="${hy+2}" width="76" height="76" fill="none" stroke-width="2" style="stroke:var(--ink)"/>`:''}
+      <circle cx="${hx+40}" cy="${hy+40}" r="23" style="fill:var(--card)"/>
+      <text x="${hx+40}" y="${hy+75}" text-anchor="middle" font-size="7" font-weight="800" fill="${PINK[c]}" font-family="Nunito,sans-serif">${on?(cf=='c'?'CPU':'Persona'):''}</text></g>`;
+  }
+  for(let n=1;n<=68;n++){
+    const[r,c]=PTRACK[n],st=PC.find(k=>PSTART[k]==n);
+    s+=`<rect x="${c*10}" y="${r*10}" width="10" height="10" stroke-width=".5" ${st?`fill="${PCOL[st]}" fill-opacity=".55" style="stroke:var(--line)"`:`style="stroke:var(--line);fill:var(${PSAFE.has(n)?'--sel':'--card'})"`}/>`;
+    if(PSAFE.has(n))s+=`<circle cx="${c*10+5}" cy="${r*10+5}" r="3.6" fill="none" stroke-width=".5" style="stroke:var(--mut)"/>`;
+    s+=`<text x="${c*10+5}" y="${r*10+6.3}" text-anchor="middle" font-size="3.4" style="fill:var(--mut)" font-family="Nunito,sans-serif">${n}</text>`;
+  }
+  for(const c of PC)for(let k=1;k<=7;k++){const[r,cc]=PCORR(c,k);
+    s+=`<rect x="${cc*10}" y="${r*10}" width="10" height="10" fill="${PCOL[c]}" fill-opacity=".4" stroke-width=".5" style="stroke:var(--line)"/>`}
+  for(const c of PC)s+=`<polygon points="${PTRI[c]}" fill="${PCOL[c]}" stroke-width=".6" style="stroke:var(--card)"/>`;
+  if(!P)return s+'</svg>';
+  if(human){const seen=new Set();
+    for(const m of P.moves){if(m.to==71||seen.has(m.to))continue;seen.add(m.to);const[x,y]=pXY(m.c,m.to,0);
+      s+=`<circle cx="${x}" cy="${y}" r="2.2" fill="none" stroke="${PCOL[m.c]}" stroke-width="1" stroke-dasharray="1 .8"/>`}}
+  // fichas: dos en la misma casilla se dibujan una al lado de la otra
+  const grp={},list=[];
+  for(const c of P.order)P.pieces[c].forEach((p,i)=>{
+    let[x,y]=pXY(c,p,i);
+    if(p>=0&&p<71){const k=pKey(c,p);grp[k]=grp[k]||[];list.push({c,i,p,k,n:grp[k].length});grp[k].push(1)}
+    else list.push({c,i,p,x,y});
+  });
+  const mvSet=new Set(human?P.moves.map(m=>m.c+m.i):[]);
+  list.forEach(o=>{if(o.k){const[x,y]=pXY(o.c,o.p,o.i),two=grp[o.k].length==2;o.x=x+(two?(o.n?2.6:-2.6):0);o.y=y}});
+  list.sort((a,b)=>mvSet.has(a.c+a.i)-mvSet.has(b.c+b.i));
+  for(const o of list){
+    const mv=mvSet.has(o.c+o.i),r=o.p==71?2:3.2;
+    s+=`<g ${mv?`data-a="pPiece" data-v="${o.c},${o.i}" style="cursor:pointer"`:''}>
+      ${mv?`<circle class="mv" cx="${o.x}" cy="${o.y}" r="4.7" fill="none" stroke-width="1.1" style="stroke:var(--ink)"/>`:''}
+      <circle cx="${o.x}" cy="${o.y}" r="${r}" fill="${PCOL[o.c]}" stroke="rgba(0,0,0,.55)" stroke-width=".7"/>
+      <circle cx="${o.x-r*.3}" cy="${o.y-r*.3}" r="${r*.3}" fill="#fff" opacity=".55"/>
+      ${mv?`<circle cx="${o.x}" cy="${o.y}" r="5" fill="transparent"/>`:''}</g>`;
+  }
+  return s+'</svg>';
+}
+function rParchis(){
+  if(!P){
+    const n=PC.filter(c=>pCfg[c]).length;
+    $('#app').innerHTML=`<h2>Parchís</h2>
+    <p class="note">Elige quién juega con cada color. Hacen falta al menos 2 jugadores; varias personas pueden jugar en el mismo dispositivo por turnos.</p>
+    ${PC.map(c=>`<div class="prow"><span class="dot" style="background:${PCOL[c]}"></span><b>${PNAME[c]}</b><div class="seg">
+      ${[['h','Persona'],['c','CPU'],['n','Nadie']].map(([t,l])=>`<button class="btn ${(pCfg[c]||'n')==t?'on':''}" data-a="pCfg" data-v="${c},${t}">${l}</button>`).join('')}</div></div>`).join('')}
+    <div class="bar"><button class="btn on" data-a="pStart" ${n<2?'disabled':''}>Empezar partida</button>${n<2?'<span class="note">Elige al menos 2 jugadores.</span>':''}</div>
+    <details><summary>Reglas</summary><ul>
+      <li>Sacas ficha de casa con un 5. Si puedes sacar, es obligatorio.</li>
+      <li>Con un 6 vuelves a tirar. Si no te quedan fichas en casa, el 6 cuenta 7.</li>
+      <li>Tres 6 seguidos: la última ficha movida vuelve a casa (salvo si está en el pasillo).</li>
+      <li>Comer una ficha rival te da 20 casillas extra; meter una en meta, 10.</li>
+      <li>En los seguros (casillas con círculo) y en las salidas no se come.</li>
+      <li>Dos fichas del mismo color forman barrera: nadie puede pasar. Con un 6 debes abrirla.</li>
+      <li>A meta se entra con el número exacto. Gana quien mete antes sus 4 fichas.</li>
+    </ul></details>
+    <div class="pz">${pBoard()}</div>`;
+    return persist();
+  }
+  const over=P.phase=='over',c=over?P.winner:pCur(),who=PNAME[c]+(pCPU(c)?' (CPU)':'');
+  const msg=over?`¡Gana ${PNAME[P.winner]}!`:P.phase=='pass'?P.note:P.phase=='roll'?(pCPU(c)?`${who} va a tirar…`:`${who}: tira el dado.`):(pCPU(c)?`${who} está pensando…`:`${who}: toca una ficha resaltada.`);
+  const sub=over?'':P.phase=='move'?(P.kind=='bonus'?`Premio: cuenta ${P.step}.`:P.step==7?'El 6 cuenta 7: no quedan fichas en casa.':`Mueve ${P.step}.`):'';
+  const canRoll=!over&&P.phase=='roll'&&!pCPU(c);
+  const die=P.die?`<div class="die" style="--pc:${PCOL[c]}" data-a="pRoll">${[...Array(9).keys()].map(k=>`<i class="${PIPS[P.die].includes(k)?'on':''}"></i>`).join('')}</div>`:`<div class="die q" style="--pc:${PCOL[c]}" data-a="pRoll">?</div>`;
+  $('#app').innerHTML=`<h2>Parchís</h2>
+  <div class="pz">${pBoard()}</div>
+  <div class="pbar">${die}<div><div class="msg ${over?'win':''}">${msg}</div><div class="note">${sub}</div></div></div>
+  <div class="bar"><button class="btn on" data-a="pRoll" ${canRoll?'':'disabled'}>Tirar dado</button><button class="btn" data-a="pSetup">Nueva partida</button></div>
+  <ul class="plog">${P.log.map(l=>`<li>${l}</li>`).join('')}</ul>`;
+  persist();
+  if(P.paused){P.paused=false;pDrive()}
+}
+function pValid(x){
+  if(!x||!Array.isArray(x.order)||x.order.length<2||x.order.length>4||new Set(x.order).size!=x.order.length||!x.order.every(c=>PC.includes(c)))return false;
+  if(!x.cfg||!x.pieces||!x.order.every(c=>['h','c'].includes(x.cfg[c])&&Array.isArray(x.pieces[c])&&x.pieces[c].length==4&&x.pieces[c].every(p=>Number.isInteger(p)&&p>=-1&&p<=71)))return false;
+  return Number.isInteger(x.turn)&&x.turn>=0&&x.turn<x.order.length&&['roll','move','pass','over'].includes(x.phase)
+    &&Number.isInteger(x.step)&&x.step>=0&&x.step<=20&&['die','bonus'].includes(x.kind)
+    &&Array.isArray(x.pend)&&x.pend.every(v=>v==10||v==20)&&Number.isInteger(x.sixes)&&x.sixes>=0&&x.sixes<3
+    &&(x.die==null||(Number.isInteger(x.die)&&x.die>=1&&x.die<=6))&&(x.lastMoved==null||[0,1,2,3].includes(x.lastMoved))
+    &&(x.phase!='over'||x.order.includes(x.winner));
+}
+function pRestore(x){
+  clearTimeout(pTimer);
+  const cfg={};PC.forEach(c=>cfg[c]=x.order.includes(c)?x.cfg[c]:null);
+  P={cfg,order:x.order.slice(),pieces:Object.fromEntries(x.order.map(c=>[c,x.pieces[c].slice()])),turn:x.turn,phase:x.phase,die:x.die??null,
+     step:x.step,kind:x.kind,pend:x.pend.slice(),sixes:x.sixes,again:!!x.again,lastMoved:x.lastMoved??null,winner:x.phase=='over'?x.winner:null,
+     note:'',log:['Partida cargada.'],moves:[],paused:true};
+  pCfg={...cfg};
+  if(P.phase=='move'){P.moves=pLegal(pCur(),P.step,P.kind);if(!P.moves.length){P.phase='pass';P.note='Sin movimientos posibles.'}}
+  if(P.phase=='pass')P.note=P.note||'Continuando…';
+}
+
 /* ---------- GUARDADO ---------- */
 const KEY='juegos-reunidos-save';
 let G={msg:'',err:false};
@@ -301,7 +559,8 @@ function snapshot(){
     app:'juegos-reunidos',version:1,savedAt:new Date().toISOString(),
     sudoku:S&&{sol:S.sol,cur:S.cur,given:S.given,level:S.level},
     nonogram:N&&{n:N.n,diff:N.diff,sol:N.sol,cur:N.cur},
-    damas:C&&{b:C.b,turn:C.turn}
+    damas:C&&{b:C.b,turn:C.turn},
+    parchis:P&&{cfg:P.cfg,order:P.order,pieces:P.pieces,turn:P.turn,phase:P.phase,die:P.die,step:P.step,kind:P.kind,pend:P.pend,sixes:P.sixes,again:P.again,lastMoved:P.lastMoved,winner:P.winner}
   };
 }
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(snapshot()))}catch(e){}}
@@ -324,6 +583,7 @@ function applyData(d){
     else C.msg=C.moves[0].caps.length?'Tu turno: captura obligatoria.':'Tu turno (blancas).';
     got.push('Damas');
   }
+  if(pValid(d.parchis)){pRestore(d.parchis);got.push('Parchís')}
   if(!got.length)throw new Error('El archivo no contiene partidas reconocibles de Juegos Reunidos.');
   return got;
 }
@@ -338,6 +598,7 @@ function rSave(){
   <div class="slot"><b>Sudoku</b><p>${sud}</p></div>
   <div class="slot"><b>Nonogram</b><p>${non}</p></div>
   <div class="slot"><b>Damas</b><p>${dam}</p></div>
+  <div class="slot"><b>Parchís</b><p>${!P?'Sin partida':P.phase=='over'?`Ganó ${PNAME[P.winner]}`:`${P.order.length} jugadores · turno de ${PNAME[pCur()]} · en meta: ${P.order.map(c=>`${PNAME[c]} ${P.pieces[c].filter(p=>p==71).length}`).join(', ')}`}</p></div>
   <div class="bar">
     <button class="btn on" data-a="gExport">Exportar .json</button>
     <label class="btn file">Importar .json<input type="file" id="gImport" accept=".json,application/json"></label>
@@ -370,6 +631,11 @@ const ACT={
   nMode:v=>{N.mode=v;rNono()},
   nCell:v=>{if(N.done)return;const[i,j]=v.split(',').map(Number),t=N.mode=='f'?1:2;N.cur[i][j]=N.cur[i][j]==t?0:t;rNono()},
   dNew:()=>{newDamas();rDamas()},
+  pCfg:v=>{const[c,t]=v.split(',');pCfg[c]=t=='n'?null:t;rParchis()},
+  pStart:()=>{if(PC.filter(c=>pCfg[c]).length<2)return;newParchis();pUpdate()},
+  pSetup:()=>{if(P&&P.phase!='over'&&!confirm('¿Abandonar la partida actual?'))return;clearTimeout(pTimer);P=null;rParchis()},
+  pRoll:()=>{if(P&&P.phase=='roll'&&!pCPU(pCur()))pRoll()},
+  pPiece:v=>{if(!P||P.phase!='move'||pCPU(pCur()))return;const[c,i]=v.split(','),m=P.moves.find(m=>m.c==c&&m.i==+i);if(m)pDo(m)},
   dCell:v=>{
     if(C.over||C.turn!='w')return;
     const[r,c]=v.split(',').map(Number),p=C.b[r][c];
@@ -394,7 +660,7 @@ const ACT={
   gClear:()=>{
     if(!confirm('¿Borrar todo el progreso guardado en este navegador?'))return;
     try{localStorage.removeItem(KEY)}catch(e){}
-    S=N=C=null;G={msg:'Progreso borrado.',err:false};rSave();
+    clearTimeout(pTimer);S=N=C=P=null;G={msg:'Progreso borrado.',err:false};rSave();
   }
 };
 
