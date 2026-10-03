@@ -22,11 +22,14 @@ nav button.on{color:var(--blue)}
 .card{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-left:8px solid var(--c);border-radius:14px;padding:14px 16px;margin:10px 0}
 .card h2{font-size:22px}.card p{margin:4px 0 0;color:var(--mut);font-size:14px}
 .soon{border:2px dashed var(--line);border-radius:14px;padding:12px 16px;color:var(--mut);font-size:14px;margin-top:18px}
-.bar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center}
+.lbl{font-size:13px;color:var(--mut);font-weight:700;min-width:72px}
 .btn{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-weight:700;font-size:14px}
 .btn.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.danger{color:var(--red)}
 .msg{min-height:24px;font-weight:700;margin:8px 0}
 .win{color:#1E8E4E}
+.err{color:var(--red)}
 /* sudoku */
 .sd{display:grid;grid-template-columns:repeat(9,1fr);width:min(100%,440px);aspect-ratio:1;border:2px solid var(--ink);margin:10px auto;background:var(--card)}
 .sd button{border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:none;font-size:clamp(16px,5.4vw,24px);padding:0;font-family:'Baloo 2',sans-serif}
@@ -37,22 +40,30 @@ nav button.on{color:var(--blue)}
 .pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:min(100%,440px);margin:0 auto}
 .pad button{padding:12px 0;font-size:18px;font-weight:800;background:var(--card);border:1px solid var(--line);border-radius:10px}
 /* nonogram */
-.ng{display:grid;grid-template-columns:auto repeat(var(--n),var(--cs));margin:10px auto;width:max-content;max-width:100%;font-size:12px;font-weight:700}
+.ngwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ng{display:grid;grid-template-columns:auto repeat(var(--n),var(--cs));margin:10px auto;width:max-content;font-size:var(--fs);font-weight:700}
 .ng .cc{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:3px;line-height:1.15}
-.ng .rc{display:flex;gap:4px;justify-content:flex-end;align-items:center;padding-right:6px}
-.ng .c{width:var(--cs);height:var(--cs);border:1px solid var(--line);background:var(--card);padding:0;font-size:14px;color:var(--mut)}
+.ng .rc{display:flex;gap:4px;justify-content:flex-end;align-items:center;padding-right:6px;white-space:nowrap}
+.ng .c{width:var(--cs);height:var(--cs);border:1px solid var(--line);background:var(--card);padding:0;font-size:calc(var(--cs) * .55);line-height:1;color:var(--mut);overflow:hidden}
 .ng .c.f{background:var(--ink)}
 .ng .c.m5{border-right:2px solid var(--ink)}.ng .c.b5{border-bottom:2px solid var(--ink)}
 .ng .ok{color:#1E8E4E}
-/* checkers */
-.ck{display:grid;grid-template-columns:repeat(8,1fr);width:min(100%,440px);aspect-ratio:1;margin:10px auto;border:3px solid var(--dark);border-radius:6px;overflow:hidden}
-.ck div{display:flex;align-items:center;justify-content:center;background:var(--light);position:relative}
-.ck div.d{background:var(--dark)}
-.ck div.s::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 4px var(--yel)}
-.ck div.t::before{content:"";position:absolute;width:30%;height:30%;border-radius:50%;background:var(--yel);opacity:.9}
-.pc{width:76%;height:76%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:clamp(14px,5vw,22px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+/* checkers: pistas fijas para que las casillas nunca cambien de tamaño */
+.ck{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));width:min(100%,440px);aspect-ratio:1;margin:10px auto;border:3px solid var(--dark);border-radius:6px;overflow:hidden}
+.ck .sq{display:flex;align-items:center;justify-content:center;background:var(--light);position:relative;min-width:0;min-height:0;overflow:hidden}
+.ck .sq.d{background:var(--dark)}
+.ck .sq.s::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 4px var(--yel)}
+.ck .sq.t::before{content:"";position:absolute;width:30%;height:30%;border-radius:50%;background:var(--yel);opacity:.9}
+.pc{width:76%;height:76%;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:clamp(12px,4.4vw,20px);line-height:1;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.35)}
 .pc.w{background:#F7F3EA;color:#8A6D1E;border:3px solid #D8CFB8}
 .pc.b{background:#B3322B;color:#FFE9A8;border:3px solid #7E211C}
+/* guardado */
+.slot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:8px 0}
+.slot b{font-family:'Baloo 2',system-ui,sans-serif;font-size:18px}
+.slot p{margin:2px 0 0;color:var(--mut);font-size:14px}
+.file{position:relative;overflow:hidden}
+.file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.note{color:var(--mut);font-size:13px}
 </style>
 </head>
 <body>
@@ -62,12 +73,13 @@ nav button.on{color:var(--blue)}
 const $=s=>document.querySelector(s);
 const rnd=n=>Math.floor(Math.random()*n);
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
-const TABS=[['home','🏠','Inicio'],['sudoku','🔢','Sudoku'],['nono','🖼️','Nonogram'],['damas','⚫','Damas']];
+const TABS=[['home','🏠','Inicio'],['sudoku','🔢','Sudoku'],['nono','🖼️','Nonogram'],['damas','⚫','Damas'],['save','💾','Guardado']];
+const LVL={facil:'Fácil',medio:'Medio',dificil:'Difícil'};
 let view='home';
 function go(v){view=v;render()}
 function render(){
   $('#nav').innerHTML=TABS.map(t=>`<button class="${t[0]==view?'on':''}" data-go="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join('');
-  ({home:rHome,sudoku:rSudoku,nono:rNono,damas:rDamas})[view]();
+  ({home:rHome,sudoku:rSudoku,nono:rNono,damas:rDamas,save:rSave})[view]();
   window.scrollTo(0,0);
 }
 document.addEventListener('click',e=>{
@@ -80,8 +92,9 @@ function rHome(){
   $('#app').innerHTML=`<h1 style="font-size:34px">Juegos Reunidos</h1>
   <p style="color:var(--mut);margin:4px 0 8px">Elige un juego para empezar.</p>
   <button class="card" style="--c:var(--blue)" data-go="sudoku"><h2>Sudoku</h2><p>Completa la cuadrícula sin repetir números. 3 niveles.</p></button>
-  <button class="card" style="--c:var(--yel)" data-go="nono"><h2>Nonogram</h2><p>Descubre el dibujo con las pistas de filas y columnas.</p></button>
+  <button class="card" style="--c:var(--yel)" data-go="nono"><h2>Nonogram</h2><p>Descubre el dibujo con las pistas. 4 tamaños y 3 dificultades.</p></button>
   <button class="card" style="--c:var(--red)" data-go="damas"><h2>Damas</h2><p>Juega con blancas contra la máquina. Captura obligatoria.</p></button>
+  <button class="card" style="--c:var(--mut)" data-go="save"><h2>Guardado</h2><p>Exporta o importa tu progreso en un archivo .json.</p></button>
   <div class="soon">Próximamente: Solitario Klondike y Parchís.</div>`;
 }
 
@@ -114,11 +127,12 @@ function rSudoku(){
   const full=S.cur.every(v=>v)&&!S.cur.some((v,i)=>sConf(i));
   if(full)S.done=true;
   $('#app').innerHTML=`<h2>Sudoku</h2>
-  <div class="bar">${['facil','medio','dificil'].map(l=>`<button class="btn ${S.level==l?'on':''}" data-a="sNew" data-v="${l}">${{facil:'Fácil',medio:'Medio',dificil:'Difícil'}[l]}</button>`).join('')}</div>
+  <div class="bar">${Object.keys(LVL).map(l=>`<button class="btn ${S.level==l?'on':''}" data-a="sNew" data-v="${l}">${LVL[l]}</button>`).join('')}</div>
   <div class="sd">${cells}</div>
   <div class="msg ${S.done?'win':''}">${S.done?'¡Sudoku completado!':'Toca una casilla y elige un número.'}</div>
   <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-a="sNum" data-v="${n}">${n}</button>`).join('')}<button data-a="sNum" data-v="0">⌫</button></div>
   <div class="bar"><button class="btn" data-a="sHint">Pista</button><button class="btn" data-a="sNew" data-v="${S.level}">Nuevo juego</button></div>`;
+  persist();
 }
 function setCell(v){if(S.sel<0||S.given[S.sel]||S.done)return;S.cur[S.sel]=+v;rSudoku()}
 document.addEventListener('keydown',e=>{
@@ -130,34 +144,86 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- NONOGRAM ---------- */
 let N=null;
+const NSIZES=[5,10,15,20];
+const NDENS={facil:.66,medio:.57,dificil:.48};      // menos casillas rellenas = pistas menos evidentes
+const NCELL={5:52,10:34,15:26,20:20},NFONT={5:14,10:12,15:11,20:10};
 const runs=l=>{const r=[];let k=0;l.forEach(v=>{if(v==1)k++;else if(k){r.push(k);k=0}});if(k)r.push(k);return r.length?r:[0]};
-function newNono(n=10){
-  const sol=Array.from({length:n},()=>Array.from({length:n},()=>Math.random()<.55?1:0));
-  const col=j=>sol.map(r=>r[j]);
-  N={n,sol,cur:Array.from({length:n},()=>Array(n).fill(0)),mode:'f',done:false,
-     rc:sol.map(runs),cc:[...Array(n).keys()].map(j=>runs(col(j)))};
+const colsOf=(g,n)=>[...Array(n).keys()].map(j=>g.map(r=>r[j]));
+
+// Resuelve una línea: devuelve 1 (seguro relleno), 0 (seguro vacío), -1 (desconocido) o null si es imposible
+function lineSolve(line,clues){
+  const n=line.length,k=(clues.length==1&&clues[0]==0)?0:clues.length,memo=new Map();
+  const canPlace=(i,j)=>{const L=clues[j];if(i+L>n)return false;for(let x=i;x<i+L;x++)if(line[x]==0)return false;return !(i+L<n&&line[i+L]==1)};
+  const f=(i,j)=>{
+    if(i>=n)return j==k;
+    const key=i*64+j;if(memo.has(key))return memo.get(key);
+    let r=false;
+    if(j==k){r=true;for(let x=i;x<n;x++)if(line[x]==1){r=false;break}}
+    else{
+      if(line[i]!=1&&f(i+1,j))r=true;
+      if(!r&&canPlace(i,j)&&f(Math.min(i+clues[j]+1,n),j+1))r=true;
+    }
+    memo.set(key,r);return r;
+  };
+  if(!f(0,0))return null;
+  const cF=Array(n).fill(0),cE=Array(n).fill(0),seen=new Set();
+  const walk=(i,j)=>{
+    const key=i*64+j;if(seen.has(key)||i>=n)return;seen.add(key);
+    if(j==k){for(let x=i;x<n;x++)cE[x]=1;return}
+    if(line[i]!=1&&f(i+1,j)){cE[i]=1;walk(i+1,j)}
+    if(canPlace(i,j)){const L=clues[j],nx=Math.min(i+L+1,n);
+      if(f(nx,j+1)){for(let x=i;x<i+L;x++)cF[x]=1;if(i+L<n)cE[i+L]=1;walk(nx,j+1)}}
+  };
+  walk(0,0);
+  return line.map((v,x)=>cF[x]&&cE[x]?-1:cF[x]?1:0);
+}
+// Comprueba si el panel se resuelve solo con lógica (solución única, sin adivinar) y cuántas pasadas necesita
+function solveGrid(rc,cc,n){
+  const g=Array.from({length:n},()=>Array(n).fill(-1));let passes=0,changed=true;
+  while(changed){
+    changed=false;passes++;
+    for(let i=0;i<n;i++){const r=lineSolve(g[i],rc[i]);if(!r)return{ok:false};r.forEach((v,j)=>{if(v!=-1&&g[i][j]==-1){g[i][j]=v;changed=true}})}
+    for(let j=0;j<n;j++){const r=lineSolve(g.map(x=>x[j]),cc[j]);if(!r)return{ok:false};r.forEach((v,i)=>{if(v!=-1&&g[i][j]==-1){g[i][j]=v;changed=true}})}
+  }
+  return{ok:g.every(r=>r.every(v=>v!=-1)),passes};
+}
+function newNono(n=10,diff='medio'){
+  const d=NDENS[diff],t0=performance.now(),cands=[];let last=null;
+  for(let a=0;a<300&&cands.length<5&&performance.now()-t0<700;a++){
+    const sol=Array.from({length:n},()=>Array.from({length:n},()=>Math.random()<d?1:0));
+    const rc=sol.map(runs),cc=colsOf(sol,n).map(runs);last={sol,rc,cc};
+    const r=solveGrid(rc,cc,n);if(r.ok)cands.push({sol,rc,cc,passes:r.passes});
+  }
+  let pick=last;
+  if(cands.length){cands.sort((a,b)=>a.passes-b.passes);
+    pick=diff=='facil'?cands[0]:diff=='dificil'?cands[cands.length-1]:cands[cands.length>>1]}
+  N={n,diff,sol:pick.sol,rc:pick.rc,cc:pick.cc,cur:Array.from({length:n},()=>Array(n).fill(0)),mode:'f',done:false};
 }
 const same=(a,b)=>a.join()==b.join();
 function nCheck(){
   const n=N.n,cu=N.cur.map(r=>r.map(v=>v==1?1:0));
-  const rok=cu.map((r,i)=>same(runs(r),N.rc[i])),cok=[...Array(n).keys()].map(j=>same(runs(cu.map(r=>r[j])),N.cc[j]));
+  const rok=cu.map((r,i)=>same(runs(r),N.rc[i])),cok=colsOf(cu,n).map((c,j)=>same(runs(c),N.cc[j]));
   return{rok,cok,all:rok.every(Boolean)&&cok.every(Boolean)};
 }
 function rNono(){
-  if(!N)newNono(10);
+  if(!N)newNono(10,'medio');
   const n=N.n,ck=nCheck();N.done=ck.all;
+  const fs=NFONT[n];
+  const clueW=Math.max(...N.rc.map(r=>r.reduce((s,x)=>s+String(x).length*fs*.62+4,0)))+8;
   let h=`<div></div>`+N.cc.map((c,j)=>`<div class="cc ${ck.cok[j]?'ok':''}">${c.map(x=>`<span>${x}</span>`).join('')}</div>`).join('');
   for(let i=0;i<n;i++){
     h+=`<div class="rc ${ck.rok[i]?'ok':''}">${N.rc[i].map(x=>`<span>${x}</span>`).join('')}</div>`;
     for(let j=0;j<n;j++){const v=N.cur[i][j];
-      h+=`<button class="c ${v==1?'f':''} ${n==10&&j==4?'m5':''} ${n==10&&i==4?'b5':''}" data-a="nCell" data-v="${i},${j}">${v==2?'✕':''}</button>`}
+      h+=`<button class="c ${v==1?'f':''} ${j%5==4&&j<n-1?'m5':''} ${i%5==4&&i<n-1?'b5':''}" data-a="nCell" data-v="${i},${j}">${v==2?'✕':''}</button>`}
   }
   $('#app').innerHTML=`<h2>Nonogram</h2>
-  <div class="bar"><button class="btn ${n==5?'on':''}" data-a="nNew" data-v="5">5×5</button><button class="btn ${n==10?'on':''}" data-a="nNew" data-v="10">10×10</button>
-  <button class="btn" data-a="nNew" data-v="${n}">Nuevo</button></div>
+  <div class="bar"><span class="lbl">Tamaño</span>${NSIZES.map(s=>`<button class="btn ${n==s?'on':''}" data-a="nSize" data-v="${s}">${s}×${s}</button>`).join('')}</div>
+  <div class="bar"><span class="lbl">Dificultad</span>${Object.keys(LVL).map(l=>`<button class="btn ${N.diff==l?'on':''}" data-a="nDiff" data-v="${l}">${LVL[l]}</button>`).join('')}</div>
   <div class="bar"><button class="btn ${N.mode=='f'?'on':''}" data-a="nMode" data-v="f">■ Rellenar</button><button class="btn ${N.mode=='x'?'on':''}" data-a="nMode" data-v="x">✕ Marcar vacía</button></div>
-  <div class="ng" style="--n:${n};--cs:min(calc((100vw - 110px)/${n}),${n==5?52:36}px)">${h}</div>
-  <div class="msg ${N.done?'win':''}">${N.done?'¡Dibujo completado!':'Las pistas en verde ya están cumplidas.'}</div>`;
+  <div class="ngwrap"><div class="ng" style="--n:${n};--fs:${fs}px;--cs:max(14px,min(calc((min(100vw,480px) - 28px - ${Math.round(clueW)}px) / ${n}),${NCELL[n]}px))">${h}</div></div>
+  <div class="msg ${N.done?'win':''}">${N.done?'¡Dibujo completado!':'Las pistas en verde ya están cumplidas.'}</div>
+  <div class="bar"><button class="btn" data-a="nNew">Nuevo panel</button><button class="btn" data-a="nReset">Borrar casillas</button></div>`;
+  persist();
 }
 
 /* ---------- DAMAS ---------- */
@@ -194,7 +260,9 @@ function newDamas(){
   C={b,sel:null,turn:'w',over:false,msg:'Tu turno (blancas).'};C.moves=allMoves(b,'w');
 }
 function aiMove(){
+  if(!C||C.turn!='b'||C.over)return;   // la partida cambió mientras "pensaba"
   const ms=allMoves(C.b,'b');
+  if(!ms.length){C.over=true;C.msg='¡Has ganado!';persist();if(view=='damas')rDamas();return}
   let best=null,bs=-1e9;
   for(const m of ms){
     const nb=applyMove(C.b,m),opp=allMoves(nb,'w');
@@ -205,6 +273,7 @@ function aiMove(){
   C.b=applyMove(C.b,best);C.moves=allMoves(C.b,'w');C.turn='w';
   if(!C.moves.length){C.over=true;C.msg='Has perdido. ¡Otra partida!'}
   else C.msg=C.moves[0].caps.length?'Tu turno: captura obligatoria.':'Tu turno (blancas).';
+  persist();
   if(view=='damas')rDamas();
 }
 function rDamas(){
@@ -213,20 +282,80 @@ function rDamas(){
   let h='';
   for(let r=0;r<8;r++)for(let c=0;c<8;c++){
     const p=C.b[r][c],dk=(r+c)%2==1;
-    const cl=(dk?'d ':'')+(C.sel&&C.sel[0]==r&&C.sel[1]==c?'s ':'')+(dest.includes(r+','+c)?'t':'');
-    h+=`<div class="${cl}" data-a="dCell" data-v="${r},${c}">${p?`<div class="pc ${own(p)}" style="background:inherit"></div>`:''}</div>`;
+    const cl='sq '+(dk?'d ':'')+(C.sel&&C.sel[0]==r&&C.sel[1]==c?'s ':'')+(dest.includes(r+','+c)?'t':'');
+    h+=`<div class="${cl}" data-a="dCell" data-v="${r},${c}">${p?`<div class="pc ${own(p)}">${isK(p)?'♛\uFE0E':''}</div>`:''}</div>`;
   }
   $('#app').innerHTML=`<h2>Damas</h2>
   <div class="msg ${C.over&&C.msg.startsWith('¡')?'win':''}">${C.msg}</div>
   <div class="ck">${h}</div>
   <div class="bar"><button class="btn" data-a="dNew">Nueva partida</button></div>
   <p style="color:var(--mut);font-size:13px">Reglas: las fichas se mueven en diagonal; los reyes (♛) en las cuatro direcciones. Si puedes capturar, debes hacerlo.</p>`;
-  // dibujar fichas con estilo propio
-  document.querySelectorAll('.ck .pc').forEach(el=>{
-    const [r,c]=el.parentElement.dataset.v.split(',').map(Number),p=C.b[r][c];
-    el.style.background='';if(isK(p))el.textContent='♛';
-  });
+  persist();
 }
+
+/* ---------- GUARDADO ---------- */
+const KEY='juegos-reunidos-save';
+let G={msg:'',err:false};
+function snapshot(){
+  return{
+    app:'juegos-reunidos',version:1,savedAt:new Date().toISOString(),
+    sudoku:S&&{sol:S.sol,cur:S.cur,given:S.given,level:S.level},
+    nonogram:N&&{n:N.n,diff:N.diff,sol:N.sol,cur:N.cur},
+    damas:C&&{b:C.b,turn:C.turn}
+  };
+}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(snapshot()))}catch(e){}}
+const grid=(g,n,vals)=>Array.isArray(g)&&g.length==n&&g.every(r=>Array.isArray(r)&&r.length==n&&r.every(v=>vals.includes(v)));
+const digits=(a,min)=>Array.isArray(a)&&a.length==81&&a.every(v=>Number.isInteger(v)&&v>=min&&v<=9);
+function applyData(d){
+  if(!d||typeof d!='object')throw new Error('El archivo no contiene un guardado válido.');
+  const got=[],s=d.sudoku,n=d.nonogram,c=d.damas;
+  if(s&&digits(s.sol,1)&&digits(s.cur,0)&&Array.isArray(s.given)&&s.given.length==81){
+    S={sol:s.sol,cur:s.cur,given:s.given.map(Boolean),level:LVL[s.level]?s.level:'medio',sel:-1,done:false};got.push('Sudoku');
+  }
+  if(n&&NSIZES.includes(n.n)&&grid(n.sol,n.n,[0,1])&&grid(n.cur,n.n,[0,1,2])){
+    N={n:n.n,diff:NDENS[n.diff]?n.diff:'medio',sol:n.sol,cur:n.cur,rc:n.sol.map(runs),cc:colsOf(n.sol,n.n).map(runs),mode:'f',done:false};got.push('Nonogram');
+  }
+  if(c&&grid(c.b,8,[0,'w','b','W','B'])&&['w','b'].includes(c.turn)){
+    C={b:c.b,turn:c.turn,sel:null,over:false};C.moves=allMoves(C.b,'w');
+    if(!allMoves(C.b,'b').length){C.over=true;C.msg='¡Has ganado!'}
+    else if(!C.moves.length){C.over=true;C.msg='Has perdido. ¡Otra partida!'}
+    else if(C.turn=='b'){C.msg='Piensa la máquina…';setTimeout(aiMove,550)}
+    else C.msg=C.moves[0].caps.length?'Tu turno: captura obligatoria.':'Tu turno (blancas).';
+    got.push('Damas');
+  }
+  if(!got.length)throw new Error('El archivo no contiene partidas reconocibles de Juegos Reunidos.');
+  return got;
+}
+function rSave(){
+  const sud=S?(S.cur.every(v=>v)&&!S.cur.some((v,i)=>sConf(i))?'Completado':`${LVL[S.level]} · ${S.cur.filter(v=>v).length}/81 casillas`):'Sin partida';
+  const non=N?`${N.n}×${N.n} · ${LVL[N.diff]}${nCheck().all?' · Completado':''}`:'Sin partida';
+  let dam='Sin partida';
+  if(C){const f=C.b.flat(),w=f.filter(p=>p&&own(p)=='w').length,b=f.filter(p=>p&&own(p)=='b').length;
+    dam=C.over?C.msg:`Blancas ${w} · Rojas ${b}`}
+  $('#app').innerHTML=`<h2>Guardado</h2>
+  <p class="note">Tu progreso se guarda solo en este navegador. Para llevarlo a otro dispositivo o hacer una copia, expórtalo como archivo .json.</p>
+  <div class="slot"><b>Sudoku</b><p>${sud}</p></div>
+  <div class="slot"><b>Nonogram</b><p>${non}</p></div>
+  <div class="slot"><b>Damas</b><p>${dam}</p></div>
+  <div class="bar">
+    <button class="btn on" data-a="gExport">Exportar .json</button>
+    <label class="btn file">Importar .json<input type="file" id="gImport" accept=".json,application/json"></label>
+    <button class="btn danger" data-a="gClear">Borrar progreso</button>
+  </div>
+  <div class="msg ${G.err?'err':'win'}">${G.msg}</div>`;
+}
+document.addEventListener('change',e=>{
+  if(e.target.id!='gImport'||!e.target.files.length)return;
+  const file=e.target.files[0],rd=new FileReader();
+  rd.onload=()=>{
+    try{const got=applyData(JSON.parse(rd.result));persist();G={msg:`Importado: ${got.join(', ')}.`,err:false}}
+    catch(err){G={msg:err instanceof SyntaxError?'El archivo no es un JSON válido.':err.message,err:true}}
+    rSave();
+  };
+  rd.onerror=()=>{G={msg:'No se pudo leer el archivo.',err:true};rSave()};
+  rd.readAsText(file);
+});
 
 /* ---------- ACCIONES ---------- */
 const ACT={
@@ -234,7 +363,10 @@ const ACT={
   sNum:v=>setCell(v),
   sNew:v=>{newSudoku(v);rSudoku()},
   sHint:()=>{if(S.sel>=0&&!S.given[S.sel]&&!S.done){S.cur[S.sel]=S.sol[S.sel];rSudoku()}},
-  nNew:v=>{newNono(+v);rNono()},
+  nSize:v=>{newNono(+v,N.diff);rNono()},
+  nDiff:v=>{newNono(N.n,v);rNono()},
+  nNew:()=>{newNono(N.n,N.diff);rNono()},
+  nReset:()=>{N.cur=N.cur.map(r=>r.map(()=>0));rNono()},
   nMode:v=>{N.mode=v;rNono()},
   nCell:v=>{if(N.done)return;const[i,j]=v.split(',').map(Number),t=N.mode=='f'?1:2;N.cur[i][j]=N.cur[i][j]==t?0:t;rNono()},
   dNew:()=>{newDamas();rDamas()},
@@ -251,8 +383,22 @@ const ACT={
     }
     C.sel=(p&&own(p)=='w'&&C.moves.some(m=>m.path[0][0]==r&&m.path[0][1]==c))?[r,c]:null;
     rDamas();
+  },
+  gExport:()=>{
+    const blob=new Blob([JSON.stringify(snapshot(),null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=`juegos-reunidos-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    G={msg:'Archivo exportado.',err:false};rSave();
+  },
+  gClear:()=>{
+    if(!confirm('¿Borrar todo el progreso guardado en este navegador?'))return;
+    try{localStorage.removeItem(KEY)}catch(e){}
+    S=N=C=null;G={msg:'Progreso borrado.',err:false};rSave();
   }
 };
+
+try{const d=JSON.parse(localStorage.getItem(KEY));if(d)applyData(d)}catch(e){}
 render();
 </script>
 </body>
