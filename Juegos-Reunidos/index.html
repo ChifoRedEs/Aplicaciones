@@ -3,187 +3,860 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Solitario Klondike</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap">
+<title>Juegos Reunidos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700&display=swap">
 <style>
-  :root { --bg: #1B4332; --card: #fff; --back: #2D6A4F; --red: #D6453D; --black: #1B2A3A; --sel: #F2B84B; }
-  body { margin: 0; background: var(--bg); font-family: 'Nunito', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
-  .board { max-width: 800px; margin: 0 auto; padding: 10px; display: flex; flex-direction: column; gap: 20px; }
-  
-  .top-row, .tableau { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-  .top-row { margin-bottom: 10px; }
-  
-  .pile { position: relative; width: 100%; aspect-ratio: 2.5/3.5; border-radius: 6px; border: 2px dashed rgba(255,255,255,0.2); }
-  .card { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--card); border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; flex-direction: column; justify-content: space-between; padding: 4px; box-sizing: border-box; cursor: pointer; border: 2px solid transparent; }
-  .card.down { background: var(--back); border: 2px solid #fff; background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.1) 5px, rgba(255,255,255,0.1) 10px); }
-  .card.selected { border-color: var(--sel); box-shadow: 0 0 8px var(--sel); transform: translateY(-3px); }
-  
-  .val { font-size: clamp(14px, 3vw, 20px); font-weight: 800; line-height: 1; }
-  .suit { font-size: clamp(16px, 4vw, 24px); text-align: right; line-height: 1; }
-  .red { color: var(--red); }
-  .black { color: var(--black); }
-  
-  .t-pile .card { position: absolute; }
-  
-  .bar { display: flex; justify-content: center; margin-top: 20px; }
-  button { background: #fff; border: none; padding: 10px 20px; font-size: 16px; font-weight: 800; font-family: inherit; border-radius: 8px; cursor: pointer; }
-  
-  .msg { color: white; text-align: center; font-size: 24px; font-weight: 800; min-height: 30px; margin-bottom: 10px; }
+:root{--bg:#EEF2EF;--ink:#1B2A3A;--mut:#5C6B78;--card:#fff;--line:#C9D3CE;--red:#D6453D;--blue:#2B6CB0;--yel:#F2B84B;--sel:#DCEBFA;--bad:#FBE0DE;--dark:#6B4A36;--light:#E9D5B7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14202B;--ink:#E9EEF2;--mut:#9AA9B5;--card:#1E2E3C;--line:#34485A;--sel:#27425C;--bad:#5A2B2B}}
+:root[data-theme="dark"]{--bg:#14202B;--ink:#E9EEF2;--mut:#9AA9B5;--card:#1E2E3C;--line:#34485A;--sel:#27425C;--bad:#5A2B2B}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;font-weight:500}
+h1,h2{font-family:'Baloo 2',system-ui,sans-serif;margin:0;line-height:1.1}
+button{font:inherit;color:inherit;cursor:pointer}
+
+/* Cabecera y Menú Lateral */
+header{position:fixed;top:0;left:0;right:0;height:56px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;z-index:10;padding-top:env(safe-area-inset-top,0px)}
+.menu-btn{font-size:26px;background:none;border:none;margin-right:16px;color:var(--ink);display:flex;align-items:center;justify-content:center}
+#sidebar{position:fixed;top:0;left:-280px;width:280px;bottom:0;background:var(--card);border-right:1px solid var(--line);z-index:20;transition:left 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;padding:calc(20px + env(safe-area-inset-top,0px)) 0 20px;overflow-y:auto}
+#sidebar.open{left:0}
+#sidebar button{display:flex;align-items:center;gap:16px;padding:14px 24px;font-size:16px;font-weight:700;background:none;border:none;color:var(--mut);width:100%;text-align:left}
+#sidebar button.on{color:var(--blue);background:var(--sel);border-right:4px solid var(--blue)}
+#sidebar button span{font-size:24px}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:15;opacity:0;pointer-events:none;transition:opacity 0.3s}
+#overlay.open{opacity:1;pointer-events:auto}
+
+main{max-width:480px;margin:0 auto;padding:calc(72px + env(safe-area-inset-top,0px)) 14px 40px}
+
+.card{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-left:8px solid var(--c);border-radius:14px;padding:14px 16px;margin:10px 0}
+.card h2{font-size:22px}.card p{margin:4px 0 0;color:var(--mut);font-size:14px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center}
+.lbl{font-size:13px;color:var(--mut);font-weight:700;min-width:72px}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-weight:700;font-size:14px}
+.btn.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.danger{color:var(--red)}
+.msg{min-height:24px;font-weight:700;margin:8px 0}
+.win{color:#1E8E4E}
+.err{color:var(--red)}
+
+/* sudoku */
+.sd{display:grid;grid-template-columns:repeat(9,1fr);width:min(100%,440px);aspect-ratio:1;border:2px solid var(--ink);margin:10px auto;background:var(--card)}
+.sd button{border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:none;font-size:clamp(16px,5.4vw,24px);padding:0;font-family:'Baloo 2',sans-serif}
+.sd button:nth-child(3n){border-right:2px solid var(--ink)}
+.sd button:nth-child(n+19):nth-child(-n+27),.sd button:nth-child(n+46):nth-child(-n+54){border-bottom:2px solid var(--ink)}
+.sd .g{font-weight:800}.sd .u{color:var(--blue)}
+.sd .p{background:var(--sel)}.sd .s{background:var(--yel);color:#1B2A3A}.sd .x{background:var(--bad);color:var(--red)}
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:min(100%,440px);margin:0 auto}
+.pad button{padding:12px 0;font-size:18px;font-weight:800;background:var(--card);border:1px solid var(--line);border-radius:10px}
+
+/* nonogram */
+.ngwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ng{display:grid;grid-template-columns:auto repeat(var(--n),var(--cs));margin:10px auto;width:max-content;font-size:var(--fs);font-weight:700}
+.ng .cc{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:3px;line-height:1.15}
+.ng .rc{display:flex;gap:4px;justify-content:flex-end;align-items:center;padding-right:6px;white-space:nowrap}
+.ng .c{width:var(--cs);height:var(--cs);border:1px solid var(--line);background:var(--card);padding:0;font-size:calc(var(--cs) * .55);line-height:1;color:var(--mut);overflow:hidden}
+.ng .c.f{background:var(--ink)}
+.ng .c.m5{border-right:2px solid var(--ink)}.ng .c.b5{border-bottom:2px solid var(--ink)}
+.ng .ok{color:#1E8E4E}
+
+/* checkers */
+.ck{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));width:min(100%,440px);aspect-ratio:1;margin:10px auto;border:3px solid var(--dark);border-radius:6px;overflow:hidden}
+.ck .sq{display:flex;align-items:center;justify-content:center;background:var(--light);position:relative;min-width:0;min-height:0;overflow:hidden}
+.ck .sq.d{background:var(--dark)}
+.ck .sq.s::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 4px var(--yel)}
+.ck .sq.t::before{content:"";position:absolute;width:30%;height:30%;border-radius:50%;background:var(--yel);opacity:.9}
+.pc{width:76%;height:76%;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:clamp(12px,4.4vw,20px);line-height:1;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.pc.w{background:#F7F3EA;color:#8A6D1E;border:3px solid #D8CFB8}
+.pc.b{background:#B3322B;color:#FFE9A8;border:3px solid #7E211C}
+
+/* solitario */
+.sl-bd { display:flex; flex-direction:column; gap:16px; padding:10px 0; user-select:none; }
+.sl-row { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+.sl-pile { position:relative; width:100%; aspect-ratio:2.5/3.5; border-radius:6px; border:2px dashed var(--line); }
+.sl-c { position:absolute; top:0; left:0; width:100%; height:100%; background:var(--card); border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.3); display:flex; flex-direction:column; justify-content:space-between; padding:4px; box-sizing:border-box; cursor:pointer; border:2px solid transparent; }
+.sl-c.dn { background:var(--blue); border-color:#fff; background-image:repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.1) 5px, rgba(255,255,255,0.1) 10px); }
+.sl-c.sl { border-color:var(--yel); box-shadow:0 0 8px var(--yel); transform:translateY(-4px); }
+.sl-v { font-size:clamp(12px, 3.5vw, 18px); font-weight:800; line-height:1; }
+.sl-s { font-size:clamp(14px, 4vw, 22px); text-align:right; line-height:1; }
+.sl-red { color:var(--red); }
+.sl-blk { color:var(--ink); }
+
+/* parchís */
+.pz{width:min(100%,460px);margin:10px auto}
+.pz svg{width:100%;height:auto;display:block;border-radius:8px;border:2px solid var(--ink)}
+.pz .mv{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.pz .mv{animation:none}}
+.pbar{display:flex;gap:14px;align-items:center;margin:8px 0}
+.pbar .msg{margin:0}
+.die{flex:none;width:58px;height:58px;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:8px;background:var(--card);border:3px solid var(--pc);border-radius:12px;cursor:pointer}
+.die i{width:10px;height:10px;border-radius:50%;margin:auto}
+.die i.on{background:var(--ink)}
+.die.q{display:flex;align-items:center;justify-content:center;font:800 26px 'Baloo 2',sans-serif;color:var(--mut)}
+.plog{list-style:none;padding:0;margin:4px 0;font-size:13px;color:var(--mut)}
+.plog li:first-child{color:var(--ink);font-weight:700}
+.prow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0;flex-wrap:wrap}
+.prow b{font-family:'Baloo 2',system-ui,sans-serif;font-size:18px;flex:1;min-width:80px}
+.dot{width:18px;height:18px;border-radius:50%;flex:none;border:2px solid rgba(0,0,0,.25)}
+.seg{display:flex;gap:6px}
+.seg .btn{padding:6px 10px}
+details{margin:12px 0;font-size:14px;color:var(--mut)}
+details summary{cursor:pointer;font-weight:700;color:var(--ink)}
+details li{margin:3px 0}
+
+/* guardado */
+.slot{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:8px 0}
+.slot b{font-family:'Baloo 2',system-ui,sans-serif;font-size:18px}
+.slot p{margin:2px 0 0;color:var(--mut);font-size:14px}
+.file{position:relative;overflow:hidden}
+.file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.note{color:var(--mut);font-size:13px}
+.btn:disabled{opacity:.45;cursor:default}
 </style>
 </head>
 <body>
-<div class="board">
-  <div class="msg" id="msg"></div>
-  <div class="top-row">
-    <div class="pile" id="stock" onclick="draw()"></div>
-    <div class="pile" id="waste" onclick="select('waste')"></div>
-    <div style="grid-column: span 1;"></div>
-    <div class="pile" id="f0" onclick="move('f0')"></div>
-    <div class="pile" id="f1" onclick="move('f1')"></div>
-    <div class="pile" id="f2" onclick="move('f2')"></div>
-    <div class="pile" id="f3" onclick="move('f3')"></div>
-  </div>
-  
-  <div class="tableau">
-    <div class="pile t-pile" id="t0" onclick="move('t0')"></div>
-    <div class="pile t-pile" id="t1" onclick="move('t1')"></div>
-    <div class="pile t-pile" id="t2" onclick="move('t2')"></div>
-    <div class="pile t-pile" id="t3" onclick="move('t3')"></div>
-    <div class="pile t-pile" id="t4" onclick="move('t4')"></div>
-    <div class="pile t-pile" id="t5" onclick="move('t5')"></div>
-    <div class="pile t-pile" id="t6" onclick="move('t6')"></div>
-  </div>
-  <div class="bar"><button onclick="init()">Nuevo Juego</button></div>
-</div>
+
+<header>
+  <button class="menu-btn" data-a="toggleMenu">☰</button>
+  <h2 style="font-size:22px;margin:0;color:var(--ink)">Juegos Reunidos</h2>
+</header>
+<div id="overlay" data-a="toggleMenu"></div>
+<aside id="sidebar"></aside>
+
+<main id="app"></main>
 
 <script>
-const SUITS = ['♠', '♥', '♣', '♦'];
-const VALS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-const COLOR = s => (s === '♥' || s === '♦') ? 'red' : 'black';
+const $=s=>document.querySelector(s);
+const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
 
-let state = {}, sel = null;
+const TABS=[
+  ['home','🏠','Inicio'],
+  ['sudoku','🔢','Sudoku'],
+  ['nono','🖼️','Nonogram'],
+  ['damas','⚫','Damas'],
+  ['parchis','🎲','Parchís'],
+  ['solitario','🃏','Solitario'],
+  ['save','💾','Guardado']
+];
+const LVL={facil:'Fácil',medio:'Medio',dificil:'Difícil'};
+let view='home';
 
-function init() {
+function go(v){
+  view=v;
+  $('#sidebar').classList.remove('open');
+  $('#overlay').classList.remove('open');
+  render();
+}
+
+function render(){
+  $('#sidebar').innerHTML=`<div style="padding:0 24px 16px"><h1 style="font-size:26px;color:var(--ink)">Menú</h1></div>` + 
+    TABS.map(t=>`<button class="${t[0]==view?'on':''}" data-go="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join('');
+  ({home:rHome,sudoku:rSudoku,nono:rNono,damas:rDamas,parchis:rParchis,solitario:rSolitario,save:rSave})[view]();
+  window.scrollTo(0,0);
+}
+
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');if(g)return go(g.dataset.go);
+  const a=e.target.closest('[data-a]');if(a)ACT[a.dataset.a](a.dataset.v,a);
+});
+
+/* ---------- INICIO ---------- */
+function rHome(){
+  $('#app').innerHTML=`<h1 style="font-size:34px">Juegos Reunidos</h1>
+  <p style="color:var(--mut);margin:4px 0 8px">Abre el menú (☰) o elige un juego para empezar.</p>
+  <button class="card" style="--c:var(--blue)" data-go="sudoku"><h2>Sudoku</h2><p>Completa la cuadrícula sin repetir números. 3 niveles.</p></button>
+  <button class="card" style="--c:var(--yel)" data-go="nono"><h2>Nonogram</h2><p>Descubre el dibujo con las pistas. 4 tamaños y 3 dificultades.</p></button>
+  <button class="card" style="--c:var(--red)" data-go="damas"><h2>Damas</h2><p>Juega con blancas contra la máquina. Captura obligatoria.</p></button>
+  <button class="card" style="--c:#2E9E5B" data-go="parchis"><h2>Parchís</h2><p>De 2 a 4 jugadores, personas o CPU, en el mismo dispositivo.</p></button>
+  <button class="card" style="--c:#77529E" data-go="solitario"><h2>Solitario</h2><p>El clásico Klondike. Ordena la baraja alternando colores.</p></button>
+  <button class="card" style="--c:var(--mut)" data-go="save"><h2>Guardado</h2><p>Exporta o importa tu progreso en un archivo .json.</p></button>`;
+}
+
+/* ---------- SUDOKU ---------- */
+let S=null;
+function genSudoku(){
+  const g=Array(81).fill(0);
+  const ok=(i,v)=>{const r=i/9|0,c=i%9;for(let k=0;k<9;k++)if(g[r*9+k]==v||g[k*9+c]==v)return false;
+    const br=r-r%3,bc=c-c%3;for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(g[(br+a)*9+bc+b]==v)return false;return true};
+  const fill=i=>{if(i==81)return true;for(const v of shuffle([1,2,3,4,5,6,7,8,9]))if(ok(i,v)){g[i]=v;if(fill(i+1))return true;g[i]=0}return false};
+  fill(0);return g;
+}
+function newSudoku(level='medio'){
+  const sol=genSudoku(),cur=sol.slice(),n={facil:36,medio:46,dificil:54}[level];
+  shuffle([...Array(81).keys()]).slice(0,n).forEach(i=>cur[i]=0);
+  S={sol,cur,given:cur.map(v=>v>0),sel:-1,level,done:false};
+}
+const peers=(i,j)=>{const r=i/9|0,c=i%9,r2=j/9|0,c2=j%9;return i!=j&&(r==r2||c==c2||((r/3|0)==(r2/3|0)&&(c/3|0)==(c2/3|0)))};
+const sConf=i=>S.cur[i]&&S.cur.some((v,j)=>v==S.cur[i]&&peers(i,j));
+function rSudoku(){
+  if(!S)newSudoku();
+  const sv=S.sel>=0?S.cur[S.sel]:0;
+  const cells=S.cur.map((v,i)=>{
+    let c=S.given[i]?'g':'u';
+    if(S.sel>=0&&(peers(S.sel,i)))c+=' p';
+    if(sv&&v==sv)c+=' p';
+    if(sConf(i))c+=' x';
+    if(i==S.sel)c+=' s';
+    return `<button class="${c}" data-a="sCell" data-v="${i}">${v||''}</button>`}).join('');
+  const full=S.cur.every(v=>v)&&!S.cur.some((v,i)=>sConf(i));
+  if(full)S.done=true;
+  $('#app').innerHTML=`<h2>Sudoku</h2>
+  <div class="bar">${Object.keys(LVL).map(l=>`<button class="btn ${S.level==l?'on':''}" data-a="sNew" data-v="${l}">${LVL[l]}</button>`).join('')}</div>
+  <div class="sd">${cells}</div>
+  <div class="msg ${S.done?'win':''}">${S.done?'¡Sudoku completado!':'Toca una casilla y elige un número.'}</div>
+  <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-a="sNum" data-v="${n}">${n}</button>`).join('')}<button data-a="sNum" data-v="0">⌫</button></div>
+  <div class="bar"><button class="btn" data-a="sHint">Pista</button><button class="btn" data-a="sNew" data-v="${S.level}">Nuevo juego</button></div>`;
+  persist();
+}
+function setCell(v){if(S.sel<0||S.given[S.sel]||S.done)return;S.cur[S.sel]=+v;rSudoku()}
+document.addEventListener('keydown',e=>{
+  if(view!='sudoku'||!S)return;
+  if(/^[0-9]$/.test(e.key))setCell(e.key);
+  else if(e.key=='Backspace'||e.key=='Delete')setCell(0);
+  else if(S.sel>=0&&e.key.startsWith('Arrow')){const d={ArrowUp:-9,ArrowDown:9,ArrowLeft:-1,ArrowRight:1}[e.key];const n=S.sel+d;if(n>=0&&n<81){S.sel=n;rSudoku()}}
+});
+
+/* ---------- NONOGRAM ---------- */
+let N=null;
+const NSIZES=[5,10,15,20];
+const NDENS={facil:.66,medio:.57,dificil:.48};
+const NCELL={5:52,10:34,15:26,20:20},NFONT={5:14,10:12,15:11,20:10};
+const runs=l=>{const r=[];let k=0;l.forEach(v=>{if(v==1)k++;else if(k){r.push(k);k=0}});if(k)r.push(k);return r.length?r:[0]};
+const colsOf=(g,n)=>[...Array(n).keys()].map(j=>g.map(r=>r[j]));
+function lineSolve(line,clues){
+  const n=line.length,k=(clues.length==1&&clues[0]==0)?0:clues.length,memo=new Map();
+  const canPlace=(i,j)=>{const L=clues[j];if(i+L>n)return false;for(let x=i;x<i+L;x++)if(line[x]==0)return false;return !(i+L<n&&line[i+L]==1)};
+  const f=(i,j)=>{
+    if(i>=n)return j==k;
+    const key=i*64+j;if(memo.has(key))return memo.get(key);
+    let r=false;
+    if(j==k){r=true;for(let x=i;x<n;x++)if(line[x]==1){r=false;break}}
+    else{
+      if(line[i]!=1&&f(i+1,j))r=true;
+      if(!r&&canPlace(i,j)&&f(Math.min(i+clues[j]+1,n),j+1))r=true;
+    }
+    memo.set(key,r);return r;
+  };
+  if(!f(0,0))return null;
+  const cF=Array(n).fill(0),cE=Array(n).fill(0),seen=new Set();
+  const walk=(i,j)=>{
+    const key=i*64+j;if(seen.has(key)||i>=n)return;seen.add(key);
+    if(j==k){for(let x=i;x<n;x++)cE[x]=1;return}
+    if(line[i]!=1&&f(i+1,j)){cE[i]=1;walk(i+1,j)}
+    if(canPlace(i,j)){const L=clues[j],nx=Math.min(i+L+1,n);
+      if(f(nx,j+1)){for(let x=i;x<i+L;x++)cF[x]=1;if(i+L<n)cE[i+L]=1;walk(nx,j+1)}}
+  };
+  walk(0,0);
+  return line.map((v,x)=>cF[x]&&cE[x]?-1:cF[x]?1:0);
+}
+function solveGrid(rc,cc,n){
+  const g=Array.from({length:n},()=>Array(n).fill(-1));let passes=0,changed=true;
+  while(changed){
+    changed=false;passes++;
+    for(let i=0;i<n;i++){const r=lineSolve(g[i],rc[i]);if(!r)return{ok:false};r.forEach((v,j)=>{if(v!=-1&&g[i][j]==-1){g[i][j]=v;changed=true}})}
+    for(let j=0;j<n;j++){const r=lineSolve(g.map(x=>x[j]),cc[j]);if(!r)return{ok:false};r.forEach((v,i)=>{if(v!=-1&&g[i][j]==-1){g[i][j]=v;changed=true}})}
+  }
+  return{ok:g.every(r=>r.every(v=>v!=-1)),passes};
+}
+function newNono(n=10,diff='medio'){
+  const d=NDENS[diff],t0=performance.now(),cands=[];let last=null;
+  for(let a=0;a<300&&cands.length<5&&performance.now()-t0<700;a++){
+    const sol=Array.from({length:n},()=>Array.from({length:n},()=>Math.random()<d?1:0));
+    const rc=sol.map(runs),cc=colsOf(sol,n).map(runs);last={sol,rc,cc};
+    const r=solveGrid(rc,cc,n);if(r.ok)cands.push({sol,rc,cc,passes:r.passes});
+  }
+  let pick=last;
+  if(cands.length){cands.sort((a,b)=>a.passes-b.passes);
+    pick=diff=='facil'?cands[0]:diff=='dificil'?cands[cands.length-1]:cands[cands.length>>1]}
+  N={n,diff,sol:pick.sol,rc:pick.rc,cc:pick.cc,cur:Array.from({length:n},()=>Array(n).fill(0)),mode:'f',done:false};
+}
+function nCheck(){
+  const n=N.n,cu=N.cur.map(r=>r.map(v=>v==1?1:0));
+  const rok=cu.map((r,i)=>same(runs(r),N.rc[i])),cok=colsOf(cu,n).map((c,j)=>same(runs(c),N.cc[j]));
+  return{rok,cok,all:rok.every(Boolean)&&cok.every(Boolean)};
+}
+function rNono(){
+  if(!N)newNono(10,'medio');
+  const n=N.n,ck=nCheck();N.done=ck.all;
+  const fs=NFONT[n];
+  const clueW=Math.max(...N.rc.map(r=>r.reduce((s,x)=>s+String(x).length*fs*.62+4,0)))+8;
+  let h=`<div></div>`+N.cc.map((c,j)=>`<div class="cc ${ck.cok[j]?'ok':''}">${c.map(x=>`<span>${x}</span>`).join('')}</div>`).join('');
+  for(let i=0;i<n;i++){
+    h+=`<div class="rc ${ck.rok[i]?'ok':''}">${N.rc[i].map(x=>`<span>${x}</span>`).join('')}</div>`;
+    for(let j=0;j<n;j++){const v=N.cur[i][j];
+      h+=`<button class="c ${v==1?'f':''} ${j%5==4&&j<n-1?'m5':''} ${i%5==4&&i<n-1?'b5':''}" data-a="nCell" data-v="${i},${j}">${v==2?'✕':''}</button>`}
+  }
+  $('#app').innerHTML=`<h2>Nonogram</h2>
+  <div class="bar"><span class="lbl">Tamaño</span>${NSIZES.map(s=>`<button class="btn ${n==s?'on':''}" data-a="nSize" data-v="${s}">${s}×${s}</button>`).join('')}</div>
+  <div class="bar"><span class="lbl">Dificultad</span>${Object.keys(LVL).map(l=>`<button class="btn ${N.diff==l?'on':''}" data-a="nDiff" data-v="${l}">${LVL[l]}</button>`).join('')}</div>
+  <div class="bar"><button class="btn ${N.mode=='f'?'on':''}" data-a="nMode" data-v="f">■ Rellenar</button><button class="btn ${N.mode=='x'?'on':''}" data-a="nMode" data-v="x">✕ Marcar vacía</button></div>
+  <div class="ngwrap"><div class="ng" style="--n:${n};--fs:${fs}px;--cs:max(14px,min(calc((min(100vw,480px) - 28px - ${Math.round(clueW)}px) / ${n}),${NCELL[n]}px))">${h}</div></div>
+  <div class="msg ${N.done?'win':''}">${N.done?'¡Dibujo completado!':'Las pistas en verde ya están cumplidas.'}</div>
+  <div class="bar"><button class="btn" data-a="nNew">Nuevo panel</button><button class="btn" data-a="nReset">Borrar casillas</button></div>`;
+  persist();
+}
+
+/* ---------- DAMAS ---------- */
+let C=null;
+const own=p=>p.toLowerCase(),isK=p=>p=='W'||p=='B';
+const dirs=p=>isK(p)?[[1,1],[1,-1],[-1,1],[-1,-1]]:(p=='w'?[[-1,1],[-1,-1]]:[[1,1],[1,-1]]);
+const inb=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
+function chains(b,r,c,p,caps,path,out){
+  let f=false;
+  for(const[dr,dc]of dirs(p)){
+    const mr=r+dr,mc=c+dc,lr=r+2*dr,lc=c+2*dc;if(!inb(lr,lc))continue;
+    const m=b[mr][mc];
+    if(m&&own(m)!=own(p)&&b[lr][lc]==0&&!caps.some(x=>x[0]==mr&&x[1]==mc)){f=true;chains(b,lr,lc,p,[...caps,[mr,mc]],[...path,[lr,lc]],out)}
+  }
+  if(!f&&path.length>1)out.push({path,caps});
+}
+function allMoves(b,color){
+  const jumps=[],steps=[];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=b[r][c];if(!p||own(p)!=color)continue;
+    const t=b.map(x=>x.slice());t[r][c]=0;chains(t,r,c,p,[],[[r,c]],jumps);
+    for(const[dr,dc]of dirs(p)){const nr=r+dr,nc=c+dc;if(inb(nr,nc)&&b[nr][nc]==0)steps.push({path:[[r,c],[nr,nc]],caps:[]})}
+  }
+  return jumps.length?jumps:steps;
+}
+function applyMove(b,m){
+  const t=b.map(x=>x.slice()),[fr,fc]=m.path[0],[er,ec]=m.path[m.path.length-1];
+  let p=t[fr][fc];t[fr][fc]=0;m.caps.forEach(([r,c])=>t[r][c]=0);
+  if(p=='w'&&er==0)p='W';if(p=='b'&&er==7)p='B';t[er][ec]=p;return t;
+}
+function newDamas(){
+  const b=Array.from({length:8},()=>Array(8).fill(0));
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if((r+c)%2){if(r<3)b[r][c]='b';else if(r>4)b[r][c]='w'}
+  C={b,sel:null,turn:'w',over:false,msg:'Tu turno (blancas).'};C.moves=allMoves(b,'w');
+}
+function aiMove(){
+  if(!C||C.turn!='b'||C.over)return;
+  const ms=allMoves(C.b,'b');
+  if(!ms.length){C.over=true;C.msg='¡Has ganado!';persist();if(view=='damas')rDamas();return}
+  let best=null,bs=-1e9;
+  for(const m of ms){
+    const nb=applyMove(C.b,m),opp=allMoves(nb,'w');
+    const risk=opp.length&&opp[0].caps.length?Math.max(...opp.map(o=>o.caps.length)):0;
+    const [er]=m.path[m.path.length-1],s=m.caps.length*10+(nb[er][m.path[m.path.length-1][1]]=='B'&&C.b[m.path[0][0]][m.path[0][1]]=='b'?4:0)-risk*8+er*.3+Math.random();
+    if(s>bs){bs=s;best=m}
+  }
+  C.b=applyMove(C.b,best);C.moves=allMoves(C.b,'w');C.turn='w';
+  if(!C.moves.length){C.over=true;C.msg='Has perdido. ¡Otra partida!'}
+  else C.msg=C.moves[0].caps.length?'Tu turno: captura obligatoria.':'Tu turno (blancas).';
+  persist();
+  if(view=='damas')rDamas();
+}
+function rDamas(){
+  if(!C)newDamas();
+  const dest=C.sel?C.moves.filter(m=>m.path[0][0]==C.sel[0]&&m.path[0][1]==C.sel[1]).map(m=>m.path[m.path.length-1].join()):[];
+  let h='';
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=C.b[r][c],dk=(r+c)%2==1;
+    const cl='sq '+(dk?'d ':'')+(C.sel&&C.sel[0]==r&&C.sel[1]==c?'s ':'')+(dest.includes(r+','+c)?'t':'');
+    h+=`<div class="${cl}" data-a="dCell" data-v="${r},${c}">${p?`<div class="pc ${own(p)}">${isK(p)?'♛\uFE0E':''}</div>`:''}</div>`;
+  }
+  $('#app').innerHTML=`<h2>Damas</h2>
+  <div class="msg ${C.over&&C.msg.startsWith('¡')?'win':''}">${C.msg}</div>
+  <div class="ck">${h}</div>
+  <div class="bar"><button class="btn" data-a="dNew">Nueva partida</button></div>
+  <p style="color:var(--mut);font-size:13px">Reglas: las fichas se mueven en diagonal; los reyes (♛) en las cuatro direcciones. Si puedes capturar, debes hacerlo.</p>`;
+  persist();
+}
+
+/* ---------- SOLITARIO ---------- */
+let K = null;
+function newSolitario() {
+  const SUITS = ['♠', '♥', '♣', '♦'];
+  const VALS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+  const COLOR = s => (s === '♥' || s === '♦') ? 'sl-red' : 'sl-blk';
+  
   let deck = [];
   SUITS.forEach(s => VALS.forEach((v, i) => deck.push({ s, v, n: i + 1, c: COLOR(s), up: false })));
-  deck = deck.sort(() => Math.random() - 0.5);
+  deck = shuffle(deck);
   
-  state = { stock: deck, waste: [], f: [[],[],[],[]], t: [[],[],[],[],[],[],[]] };
+  K = { stock: deck, waste: [], f: [[],[],[],[]], t: [[],[],[],[],[],[],[]], sel: null, done: false };
   for (let i = 0; i < 7; i++) {
     for (let j = 0; j <= i; j++) {
-      let card = state.stock.pop();
+      let card = K.stock.pop();
       if (j === i) card.up = true;
-      state.t[i].push(card);
+      K.t[i].push(card);
     }
   }
-  sel = null;
-  document.getElementById('msg').innerText = '';
-  render();
 }
 
-function draw() {
-  if (sel) { sel = null; render(); return; }
-  if (state.stock.length > 0) {
-    let c = state.stock.pop();
-    c.up = true;
-    state.waste.push(c);
-  } else {
-    state.stock = state.waste.reverse().map(c => ({...c, up: false}));
-    state.waste = [];
-  }
-  render();
-}
-
-function select(loc, idx = null) {
-  if (sel && sel.loc === loc && sel.idx === idx) { sel = null; render(); return; } // Deseleccionar
-  if (loc === 'waste' && state.waste.length === 0) return;
-  if (loc.startsWith('t') && state.t[loc[1]].length === 0) return;
-  
-  let pile = loc === 'waste' ? state.waste : state.t[loc[1]];
-  let c = idx !== null ? pile[idx] : pile[pile.length - 1];
-  
-  if (!c.up) return;
-  
-  if (sel) move(loc); // Si ya hay algo seleccionado, intenta mover
-  else { sel = { loc, idx: idx !== null ? idx : pile.length - 1, card: c }; render(); }
-}
-
-function move(dest) {
-  if (!sel) {
-    if (dest.startsWith('t') && state.t[dest[1]].length > 0) select(dest, state.t[dest[1]].length - 1);
-    return;
-  }
-  
-  let srcPile = sel.loc === 'waste' ? state.waste : state.t[sel.loc[1]];
-  let toMove = srcPile.slice(sel.idx);
-  let destPile = dest.startsWith('f') ? state.f[dest[1]] : state.t[dest[1]];
-  let topDest = destPile.length > 0 ? destPile[destPile.length - 1] : null;
-
-  let valid = false;
-  if (dest.startsWith('f')) {
-    if (toMove.length === 1) {
-      if (!topDest && toMove[0].n === 1) valid = true;
-      else if (topDest && topDest.s === toMove[0].s && topDest.n + 1 === toMove[0].n) valid = true;
-    }
-  } else if (dest.startsWith('t')) {
-    if (!topDest && toMove[0].n === 13) valid = true;
-    else if (topDest && topDest.c !== toMove[0].c && topDest.n - 1 === toMove[0].n) valid = true;
-  }
-
-  if (valid) {
-    srcPile.splice(sel.idx);
-    destPile.push(...toMove);
-    if (srcPile.length > 0 && !srcPile[srcPile.length - 1].up) srcPile[srcPile.length - 1].up = true;
-    sel = null;
-    checkWin();
-  } else {
-    sel = null; // Movimiento inválido, deseleccionar
-  }
-  render();
-}
-
-function checkWin() {
-  if (state.f.every(p => p.length === 13)) document.getElementById('msg').innerText = '¡Has ganado!';
-}
-
-function renderCard(c, isSel, topOffset = 0) {
+function rCard(c, isSel, topOffset = 0) {
   if (!c) return '';
-  if (!c.up) return `<div class="card down" style="top:${topOffset}px"></div>`;
-  return `<div class="card ${c.c} ${isSel ? 'selected' : ''}" style="top:${topOffset}px">
-            <div class="val">${c.v}</div>
-            <div class="suit">${c.s}</div>
+  if (!c.up) return `<div class="sl-c dn" style="top:${topOffset}px"></div>`;
+  return `<div class="sl-c ${c.c} ${isSel ? 'sl' : ''}" style="top:${topOffset}px">
+            <div class="sl-v">${c.v}</div>
+            <div class="sl-s">${c.s}</div>
           </div>`;
 }
 
-function render() {
-  let h = '';
-  // Stock
-  h = state.stock.length ? `<div class="card down"></div>` : '';
-  document.getElementById('stock').innerHTML = h;
+function rSolitario() {
+  if (!K) newSolitario();
   
-  // Waste
-  let wc = state.waste.length ? state.waste[state.waste.length - 1] : null;
-  document.getElementById('waste').innerHTML = renderCard(wc, sel && sel.loc === 'waste');
+  if (K.f.every(p => p.length === 13)) K.done = true;
+
+  // Render top row (Stock, Waste, Foundations)
+  let stockH = K.stock.length ? `<div class="sl-c dn"></div>` : '';
+  let wc = K.waste.length ? K.waste[K.waste.length - 1] : null;
+  let wasteH = rCard(wc, K.sel && K.sel.loc === 'waste');
   
-  // Foundations
+  let fH = '';
   for (let i = 0; i < 4; i++) {
-    let fc = state.f[i].length ? state.f[i][state.f[i].length - 1] : null;
-    document.getElementById('f'+i).innerHTML = renderCard(fc, false);
+    let fc = K.f[i].length ? K.f[i][K.f[i].length - 1] : null;
+    fH += `<div class="sl-pile" data-a="kMove" data-v="f${i}">${rCard(fc, false)}</div>`;
   }
-  
-  // Tableau
+
+  // Render Tableau
+  let tH = '';
   for (let i = 0; i < 7; i++) {
-    let th = '';
-    state.t[i].forEach((c, idx) => {
-      let isSel = sel && sel.loc === 't'+i && idx >= sel.idx;
-      let offset = idx * (window.innerWidth < 500 ? 15 : 25);
-      th += `<div onclick="event.stopPropagation(); select('t${i}', ${idx})">` + renderCard(c, isSel, offset) + `</div>`;
+    let colH = '';
+    K.t[i].forEach((c, idx) => {
+      let isSel = K.sel && K.sel.loc === 't'+i && idx >= K.sel.idx;
+      let offset = idx * (window.innerWidth < 500 ? 15 : 22);
+      colH += `<div data-a="kSel" data-v="t${i},${idx}">${rCard(c, isSel, offset)}</div>`;
     });
-    document.getElementById('t'+i).innerHTML = th;
+    tH += `<div class="sl-pile" data-a="kMove" data-v="t${i}">${colH}</div>`;
   }
+
+  $('#app').innerHTML = `<h2>Solitario Klondike</h2>
+  <div class="msg ${K.done?'win':''}">${K.done?'¡Has ganado!':'Toca una carta, luego el destino.'}</div>
+  <div class="sl-bd">
+    <div class="sl-row">
+      <div class="sl-pile" data-a="kDraw">${stockH}</div>
+      <div class="sl-pile" data-a="kSel" data-v="waste,">${wasteH}</div>
+      <div></div>
+      ${fH}
+    </div>
+    <div class="sl-row">${tH}</div>
+  </div>
+  <div class="bar"><button class="btn" data-a="kNew">Nueva partida</button></div>`;
+  
+  persist();
 }
 
-init();
+/* ---------- PARCHÍS ---------- */
+const PC=['am','az','ro','ve'];
+const PNAME={am:'Amarillo',az:'Azul',ro:'Rojo',ve:'Verde'};
+const PCOL={am:'#F2B84B',az:'#2B6CB0',ro:'#D6453D',ve:'#2E9E5B'};
+const PINK={am:'#1B2A3A',az:'#fff',ro:'#fff',ve:'#fff'};
+const PSTART={am:5,az:22,ro:39,ve:56};
+const PSAFE=new Set([5,12,17,22,29,34,39,46,51,56,63,68]);
+const PHOUSE={am:[110,110],az:[110,0],ro:[0,0],ve:[0,110]};
+const PMETA={am:[95,104,1,0],az:[104,95,0,1],ro:[95,86,1,0],ve:[86,95,0,1]};
+const PTRI={am:'80,110 110,110 95,95',az:'110,80 110,110 95,95',ro:'80,80 110,80 95,95',ve:'80,80 80,110 95,95'};
+const PCORR=(c,k)=>({am:[18-k,9],az:[9,18-k],ro:[k,9],ve:[9,k]})[c];
+const PTRACK=[null];
+for(let n=1;n<=68;n++){let r,c;
+  if(n<=8){r=19-n;c=10}else if(n<=16){r=10;c=n+2}else if(n==17){r=9;c=18}
+  else if(n<=25){r=8;c=36-n}else if(n<=33){r=33-n;c=10}else if(n==34){r=0;c=9}
+  else if(n<=42){r=n-35;c=8}else if(n<=50){r=8;c=50-n}else if(n==51){r=9;c=0}
+  else if(n<=59){r=10;c=n-52}else if(n<=67){r=n-49;c=8}else{r=18;c=9}
+  PTRACK.push([r,c])}
+const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+let P=null,pTimer=null,pCfg={am:'h',az:'c',ro:'c',ve:'c'};
+const absOf=(c,p)=>(PSTART[c]-1+p)%68+1;
+const pKey=(c,p)=>p<=63?'T'+absOf(c,p):c+p;
+const pCur=()=>P.order[P.turn];
+const pCPU=c=>P.cfg[c]=='c';
+function pOcc(){
+  const o={};
+  for(const c of P.order)P.pieces[c].forEach((p,i)=>{if(p<0||p==71)return;const k=pKey(c,p);(o[k]=o[k]||[]).push({c,i})});
+  return o;
+}
+function pLegal(c,step,kind){
+  const o=pOcc(),pc=P.pieces[c],res=[];
+  if(kind=='die'&&step==5&&pc.includes(-1)){
+    const here=o['T'+PSTART[c]]||[];let cap=null,ok=true;
+    if(here.length>=2){cap=here.find(x=>x.c!=c)||null;if(!cap)ok=false}
+    if(ok){pc.forEach((p,i)=>{if(p==-1)res.push({c,i,from:-1,to:0,cap})});return res}
+  }
+  pc.forEach((p,i)=>{
+    if(p<0||p==71)return;
+    const t=p+step;if(t>71)return;
+    for(let x=p+1;x<t;x++){const h=o[pKey(c,x)]||[];if(h.length==2&&h[0].c==h[1].c)return}
+    let cap=null;
+    if(t<71){const h=o[pKey(c,t)]||[];
+      if(h.length>=2)return;
+      if(h.length==1&&h[0].c!=c&&t<=63&&!PSAFE.has(absOf(c,t)))cap=h[0]}
+    res.push({c,i,from:p,to:t,cap});
+  });
+  if(kind=='die'&&step>=6){
+    const cells={};pc.forEach((p,i)=>{if(p>=0&&p<=63)(cells[absOf(c,p)]=cells[absOf(c,p)]||[]).push(i)});
+    const bar=Object.values(cells).filter(a=>a.length==2).flat();
+    if(bar.length){const f=res.filter(m=>bar.includes(m.i));if(f.length)return f}
+  }
+  return res;
+}
+function pDanger(c,a){
+  let n=0;
+  for(const o of P.order){if(o==c)continue;
+    P.pieces[o].forEach(p=>{if(p<0||p>63)return;const d=(a-absOf(o,p)+68)%68;if(d>=1&&d<=7&&p+d<=63)n++})}
+  return n;
+}
+function pScore(m){
+  const c=m.c;let s=Math.random()*2;
+  if(m.from==-1)s+=50;
+  if(m.cap)s+=60+P.pieces[m.cap.c][m.cap.i]*.4;
+  if(m.to==71)s+=90;else if(m.to>63&&m.from<=63)s+=35;
+  s+=(m.to-Math.max(m.from,0))*.4;
+  if(m.from>=0&&m.from<=63&&!PSAFE.has(absOf(c,m.from)))s+=pDanger(c,absOf(c,m.from))*15;
+  if(m.to<=63){const a=absOf(c,m.to);
+    if(PSAFE.has(a))s+=12;else s-=pDanger(c,a)*18;
+    if(P.pieces[c].some((p,j)=>j!=m.i&&p>=0&&p<=63&&absOf(c,p)==a))s+=6}
+  return s;
+}
+function pLog(t){P.log.unshift(t);if(P.log.length>5)P.log.length=5}
+function newParchis(){
+  const order=PC.filter(c=>pCfg[c]);
+  P={cfg:{...pCfg},order,pieces:Object.fromEntries(order.map(c=>[c,[-1,-1,-1,-1]])),turn:rnd(order.length),
+     phase:'roll',die:null,step:0,kind:'die',pend:[],sixes:0,again:false,lastMoved:null,winner:null,note:'',log:[],moves:[]};
+  pLog(`Empieza ${PNAME[pCur()]}.`);
+}
+function pSchedule(fn,ms){
+  clearTimeout(pTimer);
+  pTimer=setTimeout(()=>{pTimer=null;if(!P)return;if(view!='parchis'){P.paused=true;return}fn()},ms);
+}
+function pDrive(){
+  if(!P||P.phase=='over')return;
+  const c=pCur();
+  if(P.phase=='pass')pSchedule(pContinue,1200);
+  else if(pCPU(c)&&P.phase=='roll')pSchedule(pRoll,700);
+  else if(pCPU(c)&&P.phase=='move')pSchedule(()=>{const sc=P.moves.map(pScore);pDo(P.moves[sc.indexOf(Math.max(...sc))])},650);
+}
+function pUpdate(){if(view=='parchis')rParchis();else persist();pDrive()}
+function pSetStep(step,kind){
+  P.step=step;P.kind=kind;P.moves=pLegal(pCur(),step,kind);
+  if(P.moves.length)P.phase='move';
+  else{P.phase='pass';P.note=kind=='bonus'?`Ninguna ficha puede contar ${step}: se pierde el premio.`:`${PNAME[pCur()]} no puede mover.`}
+}
+function pRoll(){
+  if(!P||P.phase!='roll')return;
+  const c=pCur(),v=1+rnd(6);P.die=v;P.again=false;P.note='';
+  if(v==6){
+    P.sixes++;
+    if(P.sixes==3){
+      P.sixes=0;const i=P.lastMoved,p=i==null?-1:P.pieces[c][i];
+      if(p>=0&&p<=63){P.pieces[c][i]=-1;P.note='Tercer 6 seguido: la última ficha movida vuelve a casa.'}
+      else P.note='Tercer 6 seguido: se acaba el turno.';
+      pLog(`${PNAME[c]} saca el tercer 6 seguido.`);P.phase='pass';return pUpdate();
+    }
+    P.again=true;
+  }else P.sixes=0;
+  const step=v==6&&!P.pieces[c].includes(-1)?7:v;
+  pLog(`${PNAME[c]} saca ${v}${step==7?' (cuenta 7)':''}.`);
+  pSetStep(step,'die');pUpdate();
+}
+function pDo(m){
+  if(!P||P.phase!='move')return;
+  const c=m.c;P.pieces[c][m.i]=m.to;
+  if(m.from==-1)pLog(`${PNAME[c]} saca una ficha de casa.`);
+  if(m.cap){P.pieces[m.cap.c][m.cap.i]=-1;P.pend.push(20);pLog(`${PNAME[c]} se come una ficha de ${PNAME[m.cap.c]} y cuenta 20.`)}
+  if(m.to==71){P.pend.push(10);pLog(`${PNAME[c]} mete una ficha en meta y cuenta 10.`)}
+  if(P.kind=='die')P.lastMoved=m.i;
+  if(P.pieces[c].every(p=>p==71)){P.phase='over';P.winner=c;P.pend=[];clearTimeout(pTimer);pLog(`¡${PNAME[c]} gana la partida!`);return pUpdate()}
+  pContinue();
+}
+function pContinue(){
+  if(!P||P.phase=='over')return;
+  P.note='';
+  if(P.pend.length)pSetStep(P.pend.shift(),'bonus');
+  else if(P.again){P.again=false;P.phase='roll';pLog(`${PNAME[pCur()]} vuelve a tirar.`)}
+  else{P.turn=(P.turn+1)%P.order.length;P.sixes=0;P.lastMoved=null;P.phase='roll';P.die=null}
+  pUpdate();
+}
+function pXY(c,p,i){
+  if(p==-1){const[hx,hy]=PHOUSE[c];return[hx+40+(i%2?9:-9),hy+40+(i<2?-9:9)]}
+  if(p==71){const[mx,my,dx,dy]=PMETA[c],o=(i-1.5)*4.6;return[mx+dx*o,my+dy*o]}
+  const[r,cc]=p<=63?PTRACK[absOf(c,p)]:PCORR(c,p-63);
+  return[cc*10+5,r*10+5];
+}
+function pBoard(){
+  const cur=P&&P.phase!='over'?pCur():null,human=P&&P.phase=='move'&&!pCPU(cur);
+  let s=`<svg viewBox="0 0 190 190" role="img" aria-label="Tablero de parchís"><rect width="190" height="190" style="fill:var(--card)"/>`;
+  for(const c of PC){
+    const[hx,hy]=PHOUSE[c],cf=P?P.cfg[c]:pCfg[c],on=!!cf;
+    s+=`<g opacity="${on?1:.3}"><rect x="${hx}" y="${hy}" width="80" height="80" fill="${PCOL[c]}"/>${cur==c?`<rect x="${hx+2}" y="${hy+2}" width="76" height="76" fill="none" stroke-width="2" style="stroke:var(--ink)"/>`:''}
+      <circle cx="${hx+40}" cy="${hy+40}" r="23" style="fill:var(--card)"/>
+      <text x="${hx+40}" y="${hy+75}" text-anchor="middle" font-size="7" font-weight="800" fill="${PINK[c]}" font-family="Nunito,sans-serif">${on?(cf=='c'?'CPU':'Persona'):''}</text></g>`;
+  }
+  for(let n=1;n<=68;n++){
+    const[r,c]=PTRACK[n],st=PC.find(k=>PSTART[k]==n);
+    s+=`<rect x="${c*10}" y="${r*10}" width="10" height="10" stroke-width=".5" ${st?`fill="${PCOL[st]}" fill-opacity=".55" style="stroke:var(--line)"`:`style="stroke:var(--line);fill:var(${PSAFE.has(n)?'--sel':'--card'})"`}/>`;
+    if(PSAFE.has(n))s+=`<circle cx="${c*10+5}" cy="${r*10+5}" r="3.6" fill="none" stroke-width=".5" style="stroke:var(--mut)"/>`;
+    s+=`<text x="${c*10+5}" y="${r*10+6.3}" text-anchor="middle" font-size="3.4" style="fill:var(--mut)" font-family="Nunito,sans-serif">${n}</text>`;
+  }
+  for(const c of PC)for(let k=1;k<=7;k++){const[r,cc]=PCORR(c,k);
+    s+=`<rect x="${cc*10}" y="${r*10}" width="10" height="10" fill="${PCOL[c]}" fill-opacity=".4" stroke-width=".5" style="stroke:var(--line)"/>`}
+  for(const c of PC)s+=`<polygon points="${PTRI[c]}" fill="${PCOL[c]}" stroke-width=".6" style="stroke:var(--card)"/>`;
+  if(!P)return s+'</svg>';
+  if(human){const seen=new Set();
+    for(const m of P.moves){if(m.to==71||seen.has(m.to))continue;seen.add(m.to);const[x,y]=pXY(m.c,m.to,0);
+      s+=`<circle cx="${x}" cy="${y}" r="2.2" fill="none" stroke="${PCOL[m.c]}" stroke-width="1" stroke-dasharray="1 .8"/>`}}
+  const grp={},list=[];
+  for(const c of P.order)P.pieces[c].forEach((p,i)=>{
+    let[x,y]=pXY(c,p,i);
+    if(p>=0&&p<71){const k=pKey(c,p);grp[k]=grp[k]||[];list.push({c,i,p,k,n:grp[k].length});grp[k].push(1)}
+    else list.push({c,i,p,x,y});
+  });
+  const mvSet=new Set(human?P.moves.map(m=>m.c+m.i):[]);
+  list.forEach(o=>{if(o.k){const[x,y]=pXY(o.c,o.p,o.i),two=grp[o.k].length==2;o.x=x+(two?(o.n?2.6:-2.6):0);o.y=y}});
+  list.sort((a,b)=>mvSet.has(a.c+a.i)-mvSet.has(b.c+b.i));
+  for(const o of list){
+    const mv=mvSet.has(o.c+o.i),r=o.p==71?2:3.2;
+    s+=`<g ${mv?`data-a="pPiece" data-v="${o.c},${o.i}" style="cursor:pointer"`:''}>
+      ${mv?`<circle class="mv" cx="${o.x}" cy="${o.y}" r="4.7" fill="none" stroke-width="1.1" style="stroke:var(--ink)"/>`:''}
+      <circle cx="${o.x}" cy="${o.y}" r="${r}" fill="${PCOL[o.c]}" stroke="rgba(0,0,0,.55)" stroke-width=".7"/>
+      <circle cx="${o.x-r*.3}" cy="${o.y-r*.3}" r="${r*.3}" fill="#fff" opacity=".55"/>
+      ${mv?`<circle cx="${o.x}" cy="${o.y}" r="5" fill="transparent"/>`:''}</g>`;
+  }
+  return s+'</svg>';
+}
+function rParchis(){
+  if(!P){
+    const n=PC.filter(c=>pCfg[c]).length;
+    $('#app').innerHTML=`<h2>Parchís</h2>
+    <p class="note">Elige quién juega con cada color. Hacen falta al menos 2 jugadores; varias personas pueden jugar en el mismo dispositivo por turnos.</p>
+    ${PC.map(c=>`<div class="prow"><span class="dot" style="background:${PCOL[c]}"></span><b>${PNAME[c]}</b><div class="seg">
+      ${[['h','Persona'],['c','CPU'],['n','Nadie']].map(([t,l])=>`<button class="btn ${(pCfg[c]||'n')==t?'on':''}" data-a="pCfg" data-v="${c},${t}">${l}</button>`).join('')}</div></div>`).join('')}
+    <div class="bar"><button class="btn on" data-a="pStart" ${n<2?'disabled':''}>Empezar partida</button>${n<2?'<span class="note">Elige al menos 2 jugadores.</span>':''}</div>
+    <details><summary>Reglas</summary><ul>
+      <li>Sacas ficha de casa con un 5. Si puedes sacar, es obligatorio.</li>
+      <li>Con un 6 vuelves a tirar. Si no te quedan fichas en casa, el 6 cuenta 7.</li>
+      <li>Tres 6 seguidos: la última ficha movida vuelve a casa (salvo si está en el pasillo).</li>
+      <li>Comer una ficha rival te da 20 casillas extra; meter una en meta, 10.</li>
+      <li>En los seguros (casillas con círculo) y en las salidas no se come.</li>
+      <li>Dos fichas del mismo color forman barrera: nadie puede pasar. Con un 6 debes abrirla.</li>
+      <li>A meta se entra con el número exacto. Gana quien mete antes sus 4 fichas.</li>
+    </ul></details>
+    <div class="pz">${pBoard()}</div>`;
+    return persist();
+  }
+  const over=P.phase=='over',c=over?P.winner:pCur(),who=PNAME[c]+(pCPU(c)?' (CPU)':'');
+  const msg=over?`¡Gana ${PNAME[P.winner]}!`:P.phase=='pass'?P.note:P.phase=='roll'?(pCPU(c)?`${who} va a tirar…`:`${who}: tira el dado.`):(pCPU(c)?`${who} está pensando…`:`${who}: toca una ficha resaltada.`);
+  const sub=over?'':P.phase=='move'?(P.kind=='bonus'?`Premio: cuenta ${P.step}.`:P.step==7?'El 6 cuenta 7: no quedan fichas en casa.':`Mueve ${P.step}.`):'';
+  const canRoll=!over&&P.phase=='roll'&&!pCPU(c);
+  const die=P.die?`<div class="die" style="--pc:${PCOL[c]}" data-a="pRoll">${[...Array(9).keys()].map(k=>`<i class="${PIPS[P.die].includes(k)?'on':''}"></i>`).join('')}</div>`:`<div class="die q" style="--pc:${PCOL[c]}" data-a="pRoll">?</div>`;
+  $('#app').innerHTML=`<h2>Parchís</h2>
+  <div class="pz">${pBoard()}</div>
+  <div class="pbar">${die}<div><div class="msg ${over?'win':''}">${msg}</div><div class="note">${sub}</div></div></div>
+  <div class="bar"><button class="btn on" data-a="pRoll" ${canRoll?'':'disabled'}>Tirar dado</button><button class="btn" data-a="pSetup">Nueva partida</button></div>
+  <ul class="plog">${P.log.map(l=>`<li>${l}</li>`).join('')}</ul>`;
+  persist();
+  if(P.paused){P.paused=false;pDrive()}
+}
+function pValid(x){
+  if(!x||!Array.isArray(x.order)||x.order.length<2||x.order.length>4||new Set(x.order).size!=x.order.length||!x.order.every(c=>PC.includes(c)))return false;
+  if(!x.cfg||!x.pieces||!x.order.every(c=>['h','c'].includes(x.cfg[c])&&Array.isArray(x.pieces[c])&&x.pieces[c].length==4&&x.pieces[c].every(p=>Number.isInteger(p)&&p>=-1&&p<=71)))return false;
+  return Number.isInteger(x.turn)&&x.turn>=0&&x.turn<x.order.length&&['roll','move','pass','over'].includes(x.phase)
+    &&Number.isInteger(x.step)&&x.step>=0&&x.step<=20&&['die','bonus'].includes(x.kind)
+    &&Array.isArray(x.pend)&&x.pend.every(v=>v==10||v==20)&&Number.isInteger(x.sixes)&&x.sixes>=0&&x.sixes<3
+    &&(x.die==null||(Number.isInteger(x.die)&&x.die>=1&&x.die<=6))&&(x.lastMoved==null||[0,1,2,3].includes(x.lastMoved))
+    &&(x.phase!='over'||x.order.includes(x.winner));
+}
+function pRestore(x){
+  clearTimeout(pTimer);
+  const cfg={};PC.forEach(c=>cfg[c]=x.order.includes(c)?x.cfg[c]:null);
+  P={cfg,order:x.order.slice(),pieces:Object.fromEntries(x.order.map(c=>[c,x.pieces[c].slice()])),turn:x.turn,phase:x.phase,die:x.die??null,
+     step:x.step,kind:x.kind,pend:x.pend.slice(),sixes:x.sixes,again:!!x.again,lastMoved:x.lastMoved??null,winner:x.phase=='over'?x.winner:null,
+     note:'',log:['Partida cargada.'],moves:[],paused:true};
+  pCfg={...cfg};
+  if(P.phase=='move'){P.moves=pLegal(pCur(),P.step,P.kind);if(!P.moves.length){P.phase='pass';P.note='Sin movimientos posibles.'}}
+  if(P.phase=='pass')P.note=P.note||'Continuando…';
+}
+
+/* ---------- GUARDADO ---------- */
+const KEY='juegos-reunidos-save';
+let G={msg:'',err:false};
+function snapshot(){
+  return{
+    app:'juegos-reunidos',version:1,savedAt:new Date().toISOString(),
+    sudoku:S&&{sol:S.sol,cur:S.cur,given:S.given,level:S.level},
+    nonogram:N&&{n:N.n,diff:N.diff,sol:N.sol,cur:N.cur},
+    damas:C&&{b:C.b,turn:C.turn},
+    parchis:P&&{cfg:P.cfg,order:P.order,pieces:P.pieces,turn:P.turn,phase:P.phase,die:P.die,step:P.step,kind:P.kind,pend:P.pend,sixes:P.sixes,again:P.again,lastMoved:P.lastMoved,winner:P.winner},
+    solitario:K&&{stock:K.stock, waste:K.waste, f:K.f, t:K.t, done:K.done}
+  };
+}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(snapshot()))}catch(e){}}
+const grid=(g,n,vals)=>Array.isArray(g)&&g.length==n&&g.every(r=>Array.isArray(r)&&r.length==n&&r.every(v=>vals.includes(v)));
+const digits=(a,min)=>Array.isArray(a)&&a.length==81&&a.every(v=>Number.isInteger(v)&&v>=min&&v<=9);
+function applyData(d){
+  if(!d||typeof d!='object')throw new Error('El archivo no contiene un guardado válido.');
+  const got=[],s=d.sudoku,n=d.nonogram,c=d.damas,k=d.solitario;
+  if(s&&digits(s.sol,1)&&digits(s.cur,0)&&Array.isArray(s.given)&&s.given.length==81){
+    S={sol:s.sol,cur:s.cur,given:s.given.map(Boolean),level:LVL[s.level]?s.level:'medio',sel:-1,done:false};got.push('Sudoku');
+  }
+  if(n&&NSIZES.includes(n.n)&&grid(n.sol,n.n,[0,1])&&grid(n.cur,n.n,[0,1,2])){
+    N={n:n.n,diff:NDENS[n.diff]?n.diff:'medio',sol:n.sol,cur:n.cur,rc:n.sol.map(runs),cc:colsOf(n.sol,n.n).map(runs),mode:'f',done:false};got.push('Nonogram');
+  }
+  if(c&&grid(c.b,8,[0,'w','b','W','B'])&&['w','b'].includes(c.turn)){
+    C={b:c.b,turn:c.turn,sel:null,over:false};C.moves=allMoves(C.b,'w');
+    if(!allMoves(C.b,'b').length){C.over=true;C.msg='¡Has ganado!'}
+    else if(!C.moves.length){C.over=true;C.msg='Has perdido. ¡Otra partida!'}
+    else if(C.turn=='b'){C.msg='Piensa la máquina…';setTimeout(aiMove,550)}
+    else C.msg=C.moves[0].caps.length?'Tu turno: captura obligatoria.':'Tu turno (blancas).';
+    got.push('Damas');
+  }
+  if(pValid(d.parchis)){pRestore(d.parchis);got.push('Parchís')}
+  if(k&&Array.isArray(k.stock)&&Array.isArray(k.waste)&&Array.isArray(k.f)&&Array.isArray(k.t)){
+    K={stock:k.stock, waste:k.waste, f:k.f, t:k.t, sel:null, done:!!k.done};got.push('Solitario');
+  }
+  if(!got.length)throw new Error('El archivo no contiene partidas reconocibles de Juegos Reunidos.');
+  return got;
+}
+function rSave(){
+  const sud=S?(S.cur.every(v=>v)&&!S.cur.some((v,i)=>sConf(i))?'Completado':`${LVL[S.level]} · ${S.cur.filter(v=>v).length}/81 casillas`):'Sin partida';
+  const non=N?`${N.n}×${N.n} · ${LVL[N.diff]}${nCheck().all?' · Completado':''}`:'Sin partida';
+  let dam='Sin partida';
+  if(C){const f=C.b.flat(),w=f.filter(p=>p&&own(p)=='w').length,b=f.filter(p=>p&&own(p)=='b').length;
+    dam=C.over?C.msg:`Blancas ${w} · Rojas ${b}`}
+  
+  let sol = 'Sin partida';
+  if(K) sol = K.done ? 'Completado' : `Quedan ${52 - K.f.reduce((acc, p) => acc + p.length, 0)} cartas por colocar`;
+
+  $('#app').innerHTML=`<h2>Guardado</h2>
+  <p class="note">Tu progreso se guarda solo en este navegador. Para llevarlo a otro dispositivo o hacer una copia, expórtalo como archivo .json.</p>
+  <div class="slot"><b>Sudoku</b><p>${sud}</p></div>
+  <div class="slot"><b>Nonogram</b><p>${non}</p></div>
+  <div class="slot"><b>Damas</b><p>${dam}</p></div>
+  <div class="slot"><b>Parchís</b><p>${!P?'Sin partida':P.phase=='over'?`Ganó ${PNAME[P.winner]}`:`${P.order.length} jugadores · turno de ${PNAME[pCur()]} · en meta: ${P.order.map(c=>`${PNAME[c]} ${P.pieces[c].filter(p=>p==71).length}`).join(', ')}`}</p></div>
+  <div class="slot"><b>Solitario</b><p>${sol}</p></div>
+  <div class="bar">
+    <button class="btn on" data-a="gExport">Exportar .json</button>
+    <label class="btn file">Importar .json<input type="file" id="gImport" accept=".json,application/json"></label>
+    <button class="btn danger" data-a="gClear">Borrar progreso</button>
+  </div>
+  <div class="msg ${G.err?'err':'win'}">${G.msg}</div>`;
+}
+document.addEventListener('change',e=>{
+  if(e.target.id!='gImport'||!e.target.files.length)return;
+  const file=e.target.files[0],rd=new FileReader();
+  rd.onload=()=>{
+    try{const got=applyData(JSON.parse(rd.result));persist();G={msg:`Importado: ${got.join(', ')}.`,err:false}}
+    catch(err){G={msg:err instanceof SyntaxError?'El archivo no es un JSON válido.':err.message,err:true}}
+    rSave();
+  };
+  rd.onerror=()=>{G={msg:'No se pudo leer el archivo.',err:true};rSave()};
+  rd.readAsText(file);
+});
+
+/* ---------- ACCIONES ---------- */
+const ACT={
+  toggleMenu:()=>{
+    $('#sidebar').classList.toggle('open');
+    $('#overlay').classList.toggle('open');
+  },
+  sCell:v=>{S.sel=+v;rSudoku()},
+  sNum:v=>setCell(v),
+  sNew:v=>{newSudoku(v);rSudoku()},
+  sHint:()=>{if(S.sel>=0&&!S.given[S.sel]&&!S.done){S.cur[S.sel]=S.sol[S.sel];rSudoku()}},
+  nSize:v=>{newNono(+v,N.diff);rNono()},
+  nDiff:v=>{newNono(N.n,v);rNono()},
+  nNew:()=>{newNono(N.n,N.diff);rNono()},
+  nReset:()=>{N.cur=N.cur.map(r=>r.map(()=>0));rNono()},
+  nMode:v=>{N.mode=v;rNono()},
+  nCell:v=>{if(N.done)return;const[i,j]=v.split(',').map(Number),t=N.mode=='f'?1:2;N.cur[i][j]=N.cur[i][j]==t?0:t;rNono()},
+  dNew:()=>{newDamas();rDamas()},
+  pCfg:v=>{const[c,t]=v.split(',');pCfg[c]=t=='n'?null:t;rParchis()},
+  pStart:()=>{if(PC.filter(c=>pCfg[c]).length<2)return;newParchis();pUpdate()},
+  pSetup:()=>{if(P&&P.phase!='over'&&!confirm('¿Abandonar la partida actual?'))return;clearTimeout(pTimer);P=null;rParchis()},
+  pRoll:()=>{if(P&&P.phase=='roll'&&!pCPU(pCur()))pRoll()},
+  pPiece:v=>{if(!P||P.phase!='move'||pCPU(pCur()))return;const[c,i]=v.split(','),m=P.moves.find(m=>m.c==c&&m.i==+i);if(m)pDo(m)},
+  dCell:v=>{
+    if(C.over||C.turn!='w')return;
+    const[r,c]=v.split(',').map(Number),p=C.b[r][c];
+    if(C.sel){
+      const m=C.moves.find(m=>m.path[0][0]==C.sel[0]&&m.path[0][1]==C.sel[1]&&m.path[m.path.length-1][0]==r&&m.path[m.path.length-1][1]==c);
+      if(m){
+        C.b=applyMove(C.b,m);C.sel=null;C.turn='b';
+        if(!allMoves(C.b,'b').length){C.over=true;C.msg='¡Has ganado!';rDamas();return}
+        C.msg='Piensa la máquina…';rDamas();setTimeout(aiMove,550);return;
+      }
+    }
+    C.sel=(p&&own(p)=='w'&&C.moves.some(m=>m.path[0][0]==r&&m.path[0][1]==c))?[r,c]:null;
+    rDamas();
+  },
+  kNew: () => { newSolitario(); rSolitario(); },
+  kDraw: () => {
+    if (K.sel) { K.sel = null; return rSolitario(); }
+    if (K.stock.length > 0) {
+      let c = K.stock.pop(); c.up = true; K.waste.push(c);
+    } else {
+      K.stock = K.waste.reverse().map(c => ({...c, up: false})); K.waste = [];
+    }
+    rSolitario();
+  },
+  kSel: (v, elem) => {
+    // Evitar burbujeo de clics en el tablero apilado
+    if(elem && typeof elem.stopPropagation === 'function') elem.stopPropagation();
+    
+    let [loc, idxStr] = v.split(',');
+    let idx = idxStr ? +idxStr : null;
+    
+    if (K.sel && K.sel.loc === loc && K.sel.idx === idx) { K.sel = null; return rSolitario(); }
+    if (loc === 'waste' && K.waste.length === 0) return;
+    if (loc.startsWith('t') && K.t[loc[1]].length === 0) return;
+    
+    let pile = loc === 'waste' ? K.waste : K.t[loc[1]];
+    let c = idx !== null ? pile[idx] : pile[pile.length - 1];
+    
+    if (!c.up) return;
+    
+    if (K.sel) ACT.kMove(loc);
+    else { K.sel = { loc, idx: idx !== null ? idx : pile.length - 1, card: c }; rSolitario(); }
+  },
+  kMove: dest => {
+    if (!K.sel) {
+      if (dest.startsWith('t') && K.t[dest[1]].length > 0) ACT.kSel(dest + ',' + (K.t[dest[1]].length - 1));
+      return;
+    }
+    
+    let srcPile = K.sel.loc === 'waste' ? K.waste : K.t[K.sel.loc[1]];
+    let toMove = srcPile.slice(K.sel.idx);
+    let destPile = dest.startsWith('f') ? K.f[dest[1]] : K.t[dest[1]];
+    let topDest = destPile.length > 0 ? destPile[destPile.length - 1] : null;
+
+    let valid = false;
+    if (dest.startsWith('f')) {
+      if (toMove.length === 1) {
+        if (!topDest && toMove[0].n === 1) valid = true;
+        else if (topDest && topDest.s === toMove[0].s && topDest.n + 1 === toMove[0].n) valid = true;
+      }
+    } else if (dest.startsWith('t')) {
+      if (!topDest && toMove[0].n === 13) valid = true;
+      else if (topDest && topDest.c !== toMove[0].c && topDest.n - 1 === toMove[0].n) valid = true;
+    }
+
+    if (valid) {
+      srcPile.splice(K.sel.idx);
+      destPile.push(...toMove);
+      if (srcPile.length > 0 && !srcPile[srcPile.length - 1].up) srcPile[srcPile.length - 1].up = true;
+      K.sel = null;
+    } else {
+      K.sel = null;
+    }
+    rSolitario();
+  },
+  gExport:()=>{
+    const blob=new Blob([JSON.stringify(snapshot(),null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=`juegos-reunidos-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    G={msg:'Archivo exportado.',err:false};rSave();
+  },
+  gClear:()=>{
+    if(!confirm('¿Borrar todo el progreso guardado en este navegador?'))return;
+    try{localStorage.removeItem(KEY)}catch(e){}
+    clearTimeout(pTimer);S=N=C=P=K=null;G={msg:'Progreso borrado.',err:false};rSave();
+  }
+};
+
+try{const d=JSON.parse(localStorage.getItem(KEY));if(d)applyData(d)}catch(e){}
+render();
 </script>
 </body>
 </html>
