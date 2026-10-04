@@ -1,1 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LibroJuego: Xianxia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Nunito:wght@600&display=swap">
+<style>
+    :root { --bg: #F4F1EA; --text: #2C2825; --accent: #8B261D; --btn-bg: #EAE3D2; --btn-hover: #D8CEB8; }
+    @media (prefers-color-scheme: dark) {
+        :root { --bg: #1A1A1A; --text: #D4D4D4; --accent: #D9534F; --btn-bg: #2A2A2A; --btn-hover: #3A3A3A; }
+    }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Merriweather', serif; line-height: 1.8; display: flex; justify-content: center; padding: 20px; }
+    
+    .book-container { max-width: 650px; width: 100%; margin-top: 40px; margin-bottom: 60px; }
+    
+    .chapter-text { font-size: 19px; margin-bottom: 40px; text-align: justify; animation: fadeIn 0.8s ease-out; }
+    
+    .choices-area { display: flex; flex-direction: column; gap: 16px; margin-top: 40px; border-top: 1px solid rgba(139, 38, 29, 0.2); padding-top: 30px; }
+    
+    .choice-btn { background: var(--btn-bg); color: var(--text); font-family: 'Nunito', sans-serif; font-size: 16px; border: 1px solid rgba(0,0,0,0.1); padding: 16px 20px; border-radius: 6px; cursor: pointer; text-align: left; transition: all 0.2s; }
+    .choice-btn:hover { background: var(--btn-hover); border-color: var(--accent); transform: translateX(5px); }
+    
+    .inventory-bar { position: fixed; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.05); padding: 10px 20px; font-family: 'Nunito', sans-serif; font-size: 14px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; backdrop-filter: blur(5px); }
+    .inv-tag { background: var(--accent); color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; text-transform: capitalize; }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+<script src="Textos/historia.js"></script>
+</head>
+<body>
 
+<div class="inventory-bar" id="inventory-bar"></div>
+
+<div class="book-container">
+    <div id="story-text" class="chapter-text"></div>
+    <div id="choices" class="choices-area"></div>
+</div>
+
+<script>
+let estadoJuego = new Set(); // Guarda los ítems, títulos o secretos (Banderas)
+
+function irANodo(nodoId) {
+    // Si volvemos al inicio, reiniciamos el estado
+    if (nodoId === "inicio") estadoJuego.clear();
+
+    const nodo = HISTORIA[nodoId];
+    if (!nodo) return console.error("Nodo no encontrado:", nodoId);
+
+    // Actualizar Texto
+    const storyDiv = document.getElementById('story-text');
+    storyDiv.innerHTML = nodo.texto;
+    
+    // Animar la transición del texto
+    storyDiv.style.animation = 'none';
+    storyDiv.offsetHeight; // trigger reflow
+    storyDiv.style.animation = 'fadeIn 0.8s ease-out';
+
+    // Generar Botones
+    let htmlBotones = '';
+    nodo.opciones.forEach(opc => {
+        // Comprobar si se cumplen los requisitos para mostrar esta opción
+        let cumpleRequisitos = true;
+        if (opc.req) {
+            opc.req.forEach(r => { if (!estadoJuego.has(r)) cumpleRequisitos = false; });
+        }
+        
+        if (cumpleRequisitos) {
+            // Guardar la opción como JSON seguro para el onclick
+            const opcData = encodeURIComponent(JSON.stringify(opc));
+            htmlBotones += `<button class="choice-btn" onclick="seleccionarOpcion('${opcData}')">${opc.texto}</button>`;
+        }
+    });
+
+    document.getElementById('choices').innerHTML = htmlBotones;
+    actualizarInventario();
+    window.scrollTo(0, 0);
+}
+
+function seleccionarOpcion(opcDataEncoded) {
+    const opc = JSON.parse(decodeURIComponent(opcDataEncoded));
+    
+    // Aplicar nuevas banderas (ítems, conocimientos, etc.)
+    if (opc.set) {
+        opc.set.forEach(bandera => estadoJuego.add(bandera));
+    }
+    
+    // Ir al siguiente nodo
+    irANodo(opc.nodoSig);
+}
+
+function actualizarInventario() {
+    const bar = document.getElementById('inventory-bar');
+    if (estadoJuego.size === 0) {
+        bar.innerHTML = "<span style='opacity:0.5'>Mortal sin posesiones</span>";
+        return;
+    }
+    
+    let html = "<b>Estado:</b> ";
+    estadoJuego.forEach(item => {
+        let nombreLimpio = item.replace(/_/g, ' ');
+        html += `<span class="inv-tag">${nombreLimpio}</span>`;
+    });
+    bar.innerHTML = html;
+}
+
+window.onload = () => irANodo("inicio");
+</script>
+</body>
+</html>
