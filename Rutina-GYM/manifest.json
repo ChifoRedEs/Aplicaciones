@@ -1,6 +1,13 @@
 {
-"name":"Rutina Gym","short_name":"Rutina Gym",
-"description":"Gestor personal de entrenamiento",
-"start_url":"./","display":"standalone",
-"background_color":"#101216","theme_color":"#101216","lang":"es"
+  "name":"Rutina Gym",
+  "short_name":"Rutina Gym",
+  "description":"Gestor personal de entrenamiento",
+  "start_url":"./",
+  "scope":"./",
+  "id":"./",
+  "display":"standalone",
+  "background_color":"#101216",
+  "theme_color":"#101216",
+  "lang":"es",
+  "orientation":"portrait"
 }

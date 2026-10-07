@@ -1,4 +1,4 @@
-const CACHE="rutina-gym-v2-1";
+const CACHE="rutina-gym-v2-2";
 const ASSETS=[
 "./","./index.html","./manifest.json","./css/app.css",
 "./js/app.js","./js/backup.js","./js/data.js","./js/db.js",

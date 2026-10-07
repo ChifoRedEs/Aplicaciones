@@ -1,37 +1,35 @@
-# Rutina Gym v2.1
+# Rutina Gym — versión modular para GitHub Pages
 
-V2.1 reorganiza la aplicación para que los ejercicios sean entidades completas y editables.
+Aplicación web/PWA para registrar entrenamientos de gimnasio. Esta versión separa HTML, CSS, JavaScript y catálogo de ejercicios para poder mantener una biblioteca de ejercicios con imágenes y tutoriales.
 
-## Novedad principal: biblioteca de ejercicios
+## Biblioteca de ejercicios
 
-Cada ejercicio puede tener:
+En **Ajustes → Gestionar ejercicios → Editar ficha** cada ejercicio puede tener:
 
-- Imagen propia.
+- Imagen subida desde el móvil/PC.
+- Ruta de imagen versionada en GitHub (`./assets/exercises/...`).
 - Tutorial de YouTube.
-- Enlace externo adicional.
-- Instrucciones.
-- Notas.
+- Otro enlace externo.
+- Instrucciones y notas.
 - Descanso predeterminado.
-- Rango objetivo de repeticiones.
-- RIR objetivo.
-- Grupo, subgrupo, equipamiento y músculos.
+- Repeticiones objetivo y RIR objetivo.
 
-La imagen subida desde Ajustes se almacena como Blob en IndexedDB del navegador. Esto es importante: **una aplicación publicada en GitHub Pages no puede escribir físicamente nuevos archivos dentro del repositorio de GitHub**. Si quieres que una imagen forme parte del repositorio, puedes colocarla manualmente en `assets/exercises/` y asociarla al ejercicio mediante `imagePath`.
+Las imágenes que se suben desde la interfaz se guardan localmente en IndexedDB como datos de imagen. GitHub Pages no puede escribir archivos nuevos dentro del repositorio. Si quieres que una imagen viaje con el proyecto, colócala en `assets/exercises/` y asigna su ruta en la ficha.
 
 ## Arquitectura
 
 ```text
-rutina-gym-v2.1/
+rutina-gym/
 ├── index.html
 ├── manifest.json
 ├── sw.js
 ├── README.md
 ├── LICENSE
 ├── .gitignore
-├── css/
-│   └── app.css
 ├── assets/
 │   └── exercises/
+├── css/
+│   └── app.css
 ├── data/
 │   └── exercises.js
 └── js/
@@ -50,33 +48,22 @@ rutina-gym-v2.1/
 
 ## Catálogo
 
-Se ha recuperado el catálogo de ejercicios existente en `Rutina-GYM .html`, conservando grupo, subgrupo, equipamiento, músculo principal y secundarios.
+Se conserva el catálogo recuperado del HTML original: **62 ejercicios**.
 
-Ejercicios recuperados: **62**.
+## Desplegar en GitHub Pages
 
-## GitHub Pages
+1. Descomprime el ZIP.
+2. Sube **todo el contenido** al repositorio, no solo `index.html`.
+3. Comprueba que en la raíz del repositorio aparecen `index.html`, `css/`, `js/` y `data/`.
+4. En GitHub: **Settings → Pages → Deploy from a branch → rama principal → `/ (root)`**.
+5. Espera al despliegue y abre la URL de Pages.
 
-1. Sube el contenido del proyecto al repositorio.
-2. GitHub → Settings → Pages.
-3. Deploy from branch → rama principal → `/ (root)`.
-4. Accede a la URL publicada.
+La aplicación no necesita PHP, Node ni base de datos externa.
 
-La aplicación no necesita servidor PHP ni base de datos externa.
+## Datos
 
-## Datos y fotografías
+Los entrenamientos, personalizaciones de ejercicios y las imágenes subidas desde la interfaz se almacenan en IndexedDB del navegador. La copia JSON incluye esos datos.
 
-Los datos de entrenamiento se guardan localmente en IndexedDB.
+## Nota
 
-Las imágenes subidas desde la interfaz también se guardan localmente. La copia de seguridad JSON de la aplicación incluye estas imágenes como datos codificados, por lo que se pueden trasladar a otro navegador restaurando la copia.
-
-Para imágenes versionadas directamente en GitHub, utiliza:
-
-```text
-assets/exercises/
-```
-
-y referencia después el archivo desde la ficha del ejercicio.
-
-## Importante sobre la V2.1
-
-Esta versión ya establece la arquitectura correcta para la biblioteca de ejercicios, pero la migración de sesiones antiguas del HTML original queda separada en `js/migration.js` para no alterar datos existentes sin confirmación.
+La migración automática de sesiones antiguas del HTML original todavía está separada en `js/migration.js`; no se ejecuta automáticamente para evitar alterar datos sin confirmación.
