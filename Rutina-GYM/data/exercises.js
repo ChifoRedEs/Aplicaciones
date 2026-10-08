@@ -1116,10 +1116,60 @@ window.GYM_DATA.EXERCISES = [
     "instructions": "",
     "notes": ""
   }
+  ,{
+    "id":"core-crunch-en-polea","name":"Crunch abdominal en polea","group":"core","primary":"Abdomen","secondary":"Recto abdominal","equip":"maquina","subgroup":"Abdomen","restSeconds":60,"targetRepsMin":10,"targetRepsMax":15,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Arrodíllate frente a la polea, flexiona el tronco llevando las costillas hacia la pelvis y vuelve de forma controlada.","notes":""
+  },{
+    "id":"core-crunch-en-maquina","name":"Crunch abdominal en máquina","group":"core","primary":"Abdomen","secondary":"Recto abdominal","equip":"maquina","subgroup":"Abdomen","restSeconds":60,"targetRepsMin":10,"targetRepsMax":15,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Mantén la pelvis estable y realiza la flexión del tronco sin tirar del cuello.","notes":""
+  },{
+    "id":"core-crunch-inverso","name":"Crunch inverso","group":"core","primary":"Abdomen","secondary":"Recto abdominal","equip":"calistenia","subgroup":"Abdomen","restSeconds":60,"targetRepsMin":10,"targetRepsMax":20,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Tumbado boca arriba, lleva las rodillas hacia el pecho elevando ligeramente la pelvis. Baja lentamente.","notes":""
+  },{
+    "id":"core-elevacion-rodillas-colgado","name":"Elevación de rodillas colgado","group":"core","primary":"Abdomen","secondary":"Flexores de cadera","equip":"calistenia","subgroup":"Abdomen","restSeconds":75,"targetRepsMin":8,"targetRepsMax":15,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Eleva las rodillas de forma controlada, evitando balancearte. Prioriza la retroversión pélvica al final del movimiento.","notes":""
+  },{
+    "id":"core-elevacion-piernas-colgado","name":"Elevación de piernas colgado","group":"core","primary":"Abdomen","secondary":"Flexores de cadera","equip":"calistenia","subgroup":"Abdomen","restSeconds":90,"targetRepsMin":6,"targetRepsMax":12,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Mantén el balanceo bajo control y eleva las piernas con movimiento progresivo.","notes":""
+  },{
+    "id":"core-ab-wheel","name":"Rueda abdominal (Ab Wheel)","group":"core","primary":"Abdomen","secondary":"Dorsal, hombros","equip":"libre","subgroup":"Abdomen","restSeconds":90,"targetRepsMin":6,"targetRepsMax":12,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Desde rodillas, extiende el cuerpo manteniendo costillas y pelvis controladas. No dejes caer la zona lumbar.","notes":""
+  },{
+    "id":"core-plancha-frontal","name":"Plancha frontal","group":"core","primary":"Abdomen","secondary":"Glúteos, hombros","equip":"calistenia","subgroup":"Abdomen","restSeconds":60,"targetRepsMin":20,"targetRepsMax":60,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Mantén una línea estable de cabeza a pies, abdomen activo y respiración continua.","notes":""
+  },{
+    "id":"core-plancha-lateral","name":"Plancha lateral","group":"core","primary":"Oblicuos","secondary":"Glúteo medio","equip":"calistenia","subgroup":"Abdomen","restSeconds":60,"targetRepsMin":20,"targetRepsMax":60,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Apoya el antebrazo, eleva la pelvis y evita rotar el tronco.","notes":""
+  },{
+    "id":"core-dead-bug","name":"Dead Bug","group":"core","primary":"Abdomen","secondary":"Estabilizadores de cadera","equip":"calistenia","subgroup":"Estabilidad","restSeconds":45,"targetRepsMin":6,"targetRepsMax":12,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Mantén la zona lumbar estable mientras extiendes brazo y pierna contrarios. Alterna lados.","notes":""
+  },{
+    "id":"core-bird-dog","name":"Bird Dog","group":"core","primary":"Core","secondary":"Glúteos, espalda","equip":"calistenia","subgroup":"Estabilidad","restSeconds":45,"targetRepsMin":6,"targetRepsMax":12,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Desde cuatro apoyos, extiende brazo y pierna contrarios sin girar la pelvis.","notes":""
+  },{
+    "id":"core-pallof-press","name":"Pallof Press en polea","group":"core","primary":"Oblicuos","secondary":"Core","equip":"maquina","subgroup":"Estabilidad","restSeconds":60,"targetRepsMin":8,"targetRepsMax":15,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Resiste la rotación mientras alejas el agarre del pecho. Mantén pelvis y hombros alineados.","notes":""
+  },{
+    "id":"core-suitcase-carry","name":"Suitcase Carry","group":"core","primary":"Core","secondary":"Oblicuos, agarre","equip":"libre","subgroup":"Estabilidad","restSeconds":60,"targetRepsMin":20,"targetRepsMax":40,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Camina con una carga a un solo lado sin inclinar el tronco. Usa una distancia o tiempo constante.","notes":""
+  },{
+    "id":"core-hollow-body","name":"Hollow Body Hold","group":"core","primary":"Abdomen","secondary":"Flexores de cadera","equip":"calistenia","subgroup":"Abdomen","restSeconds":60,"targetRepsMin":15,"targetRepsMax":45,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Mantén la zona lumbar próxima al suelo y adopta una posición que puedas controlar sin perder la técnica.","notes":""
+  },{
+    "id":"core-mountain-climber","name":"Mountain Climbers","group":"core","primary":"Abdomen","secondary":"Flexores de cadera","equip":"calistenia","subgroup":"Abdomen","restSeconds":45,"targetRepsMin":20,"targetRepsMax":40,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Desde posición de plancha, lleva las rodillas hacia delante manteniendo el tronco estable.","notes":""
+  },{
+    "id":"core-back-extension","name":"Extensión lumbar en banco","group":"core","primary":"Lumbar","secondary":"Glúteos, femorales","equip":"libre","subgroup":"Lumbar","restSeconds":75,"targetRepsMin":10,"targetRepsMax":15,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Extiende la cadera hasta una posición neutra. Evita hiperextender la columna.","notes":""
+  },{
+    "id":"core-superman","name":"Superman","group":"core","primary":"Lumbar","secondary":"Glúteos, espalda","equip":"calistenia","subgroup":"Lumbar","restSeconds":60,"targetRepsMin":8,"targetRepsMax":15,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Eleva brazos y piernas de forma suave sin buscar una hiperextensión lumbar máxima.","notes":""
+  },{
+    "id":"core-puente-gluteo","name":"Puente de glúteos","group":"core","primary":"Pelvis","secondary":"Glúteos, femorales","equip":"calistenia","subgroup":"Pelvis / suelo pélvico","restSeconds":60,"targetRepsMin":10,"targetRepsMax":20,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Eleva la pelvis contrayendo glúteos y mantén las costillas controladas. No arquees en exceso la zona lumbar.","notes":""
+  },{
+    "id":"core-retroversion-pelvica","name":"Retroversión pélvica tumbado","group":"core","primary":"Pelvis","secondary":"Abdomen","equip":"calistenia","subgroup":"Pelvis / suelo pélvico","restSeconds":45,"targetRepsMin":10,"targetRepsMax":20,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Tumbado boca arriba, practica suavemente la basculación de la pelvis manteniendo una respiración normal.","notes":""
+  },{
+    "id":"core-kegel-lento","name":"Kegel: contracciones lentas","group":"core","primary":"Suelo pélvico","secondary":"Pelvis","equip":"calistenia","subgroup":"Pelvis / suelo pélvico","restSeconds":30,"targetRepsMin":5,"targetRepsMax":10,"targetRIR":3,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Contrae suavemente el suelo pélvico durante unos segundos y relaja completamente durante el mismo tiempo o más. Respira con normalidad y evita apretar glúteos o abdomen en exceso.","notes":"No practiques los Kegel deteniendo el flujo de orina.",
+  },{
+    "id":"core-kegel-rapido","name":"Kegel: contracciones rápidas","group":"core","primary":"Suelo pélvico","secondary":"Pelvis","equip":"calistenia","subgroup":"Pelvis / suelo pélvico","restSeconds":30,"targetRepsMin":5,"targetRepsMax":15,"targetRIR":3,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Realiza contracciones breves y suaves del suelo pélvico, dejando que el músculo se relaje entre cada repetición. No contengas la respiración.","notes":"Si hay dolor, tensión o dificultad para relajar, consulta a un profesional sanitario.",
+  },{
+    "id":"core-kegel-escalonado","name":"Kegel: contracción escalonada","group":"core","primary":"Suelo pélvico","secondary":"Pelvis","equip":"calistenia","subgroup":"Pelvis / suelo pélvico","restSeconds":45,"targetRepsMin":4,"targetRepsMax":8,"targetRIR":3,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Aumenta gradualmente la intensidad de la contracción hasta un nivel cómodo y después reduce progresivamente. Prioriza control y relajación.","notes":"La calidad de la contracción es más importante que la intensidad máxima.",
+  },{
+    "id":"core-respiracion-diafragmatica-pelvica","name":"Respiración diafragmática y relajación pélvica","group":"core","primary":"Pelvis","secondary":"Suelo pélvico","equip":"calistenia","subgroup":"Pelvis / suelo pélvico","restSeconds":30,"targetRepsMin":5,"targetRepsMax":10,"targetRIR":3,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Respira lentamente dejando que abdomen y caja torácica se expandan. Busca una sensación de relajación del suelo pélvico durante la inspiración y evita realizar contracciones forzadas.","notes":"Ejercicio de control y relajación, no de fuerza máxima."
+  },{
+    "id":"core-clamshell","name":"Clamshell","group":"core","primary":"Pelvis","secondary":"Glúteo medio","equip":"calistenia","subgroup":"Pelvis / suelo pélvico","restSeconds":45,"targetRepsMin":10,"targetRepsMax":20,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Tumbado de lado con las rodillas flexionadas, abre la rodilla superior sin girar la pelvis.","notes":""
+  },{
+    "id":"core-carry-frontal","name":"Front Rack Carry","group":"core","primary":"Core","secondary":"Espalda, hombros","equip":"libre","subgroup":"Estabilidad","restSeconds":75,"targetRepsMin":20,"targetRepsMax":40,"targetRIR":2,"image":null,"tutorialUrl":"","externalUrl":"","instructions":"Camina con la carga delante del cuerpo manteniendo el tronco erguido y el abdomen activo.","notes":""
+  }
 ];
 
 window.GYM_DATA.GROUPS = {
-  empuje:{label:"Empuje",color:"#ffb020",sub:"Pecho · Hombro · Tríceps"},
-  traccion:{label:"Tracción",color:"#4da6ff",sub:"Espalda · Bíceps · Lumbar · Abdomen"},
-  pierna:{label:"Pierna",color:"#3ed17a",sub:"Cuádriceps · Femoral · Gemelos"}
+  empuje:{label:"Empuje",color:"#f59e0b",sub:"Pecho · Hombro · Tríceps"},
+  traccion:{label:"Tracción",color:"#3b82f6",sub:"Espalda · Bíceps · Lumbar · Abdomen"},
+  pierna:{label:"Pierna",color:"#22c55e",sub:"Cuádriceps · Femoral · Gemelos"},
+  core:{label:"Core",color:"#8b5cf6",sub:"Abdomen · Lumbar · Pelvis · Suelo pélvico"}
 };
