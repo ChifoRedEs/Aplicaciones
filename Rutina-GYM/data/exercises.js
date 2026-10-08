@@ -1,4 +1,5 @@
-export const EXERCISES = [
+window.GYM_DATA = window.GYM_DATA || {};
+window.GYM_DATA.EXERCISES = [
   {
     "id": "press-de-pecho-convergente-en-m-quina",
     "name": "Press de pecho convergente en máquina",
@@ -1117,7 +1118,7 @@ export const EXERCISES = [
   }
 ];
 
-export const GROUPS = {
+window.GYM_DATA.GROUPS = {
   empuje:{label:"Empuje",color:"#ffb020",sub:"Pecho · Hombro · Tríceps"},
   traccion:{label:"Tracción",color:"#4da6ff",sub:"Espalda · Bíceps · Lumbar · Abdomen"},
   pierna:{label:"Pierna",color:"#3ed17a",sub:"Cuádriceps · Femoral · Gemelos"}
